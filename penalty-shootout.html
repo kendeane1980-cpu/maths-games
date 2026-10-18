@@ -1,0 +1,1429 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Penalty Shootout Sums</title>
+<meta name="description" content="Every right answer is a goal. Race the clock, or take turns with a friend.">
+<meta name="theme-color" content="#0a1430">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Shootout">
+<link rel="manifest" href="ball.webmanifest">
+<link rel="icon" href="icons/ball-192.png">
+<link rel="apple-touch-icon" href="icons/ball-180.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Lexend:wght@400;600;700;800&display=swap">
+<style>
+/* Layout: a night match on TV. Scoreboard strip on top, the goalmouth, the sum on the stadium big screen, a number pad below. One deliberate floodlit-night look. */
+:root {
+  --night: #0a1430;
+  --night-2: #16295c;
+  --panel: #0e1a38;
+  --panel-edge: #2a467d;
+  --screen: #060c1f;
+  --text: #f3f6ff;
+  --text-soft: #a9b6d8;
+  --amber: #ffb81c;
+  --amber-deep: #8a5a00;
+  --on-amber: #1d1400;
+  --grass: #2f8d48;
+  --grass-2: #287c3e;
+  --chalk: #eef5ec;
+  --goal: #4fe08a;
+  --save: #ff6259;
+  --keeper: #ffd23f;
+  --skin: #e2ad84;
+  --hair: #3a2617;
+  --key: #16284f;
+  --key-edge: #2e4b85;
+  --kit: #1f9e4a;
+  --kit-num: #ffffff;
+  --kit-shorts: #ffffff;
+  --font-display: "Bungee", "Impact", "Arial Black", sans-serif;
+  --font-body: "Lexend", "Trebuchet MS", system-ui, sans-serif;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background-color: var(--night);
+  background-image:
+    radial-gradient(55% 35% at 0% 0%, rgba(255, 240, 200, 0.13), transparent 70%),
+    radial-gradient(55% 35% at 100% 0%, rgba(255, 240, 200, 0.13), transparent 70%),
+    linear-gradient(var(--night-2), var(--night) 420px);
+  background-repeat: no-repeat;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+.app {
+  max-width: 460px; min-height: 100%; margin: 0 auto;
+  display: flex; flex-direction: column; gap: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px 16px;
+}
+.screen { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+#start, #end, #handover, #result { gap: 14px; }
+
+/* Top bar */
+.bar { display: flex; align-items: center; gap: 10px; min-height: 40px; }
+.wordmark { font-family: var(--font-display); font-size: 1rem; color: var(--amber); }
+.bar-actions { margin-left: auto; display: flex; gap: 8px; }
+.chip, .icon-btn {
+  height: 40px; border-radius: 20px; border: 2px solid var(--key-edge); border-bottom-width: 3px;
+  background: var(--key); color: var(--text); cursor: pointer;
+}
+.chip { padding: 0 16px; font-weight: 700; }
+.icon-btn { width: 40px; display: grid; place-items: center; padding: 0; }
+.icon-btn svg { width: 22px; height: 22px; }
+
+/* Scoreboard */
+.scoreboard {
+  display: grid; grid-template-columns: 1fr auto 1fr;
+  background: var(--panel); border: 2px solid var(--panel-edge); border-radius: 12px; overflow: hidden;
+}
+.sb-side { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 10px; min-width: 0; }
+.sb-side.home { border-left: 6px solid var(--kit); }
+.sb-side.away { border-right: 6px solid var(--keeper); }
+.sb-side.on { background: rgba(255, 184, 28, 0.14); }
+.sb-side.off { opacity: 0.55; }
+.sb-name { min-width: 0; max-height: 2.1em; overflow: hidden; overflow-wrap: anywhere; line-height: 1.05; font-family: var(--font-display); font-size: 0.78rem; letter-spacing: 0.03em; }
+.sb-score { font-weight: 800; font-size: 1.7rem; line-height: 1; color: var(--amber); font-variant-numeric: tabular-nums; }
+.sb-score.flash { animation: flash 0.7s ease-out; }
+.sb-clock {
+  display: grid; place-items: center; min-width: 4.8ch; padding: 0 10px;
+  background: var(--screen); border-inline: 2px solid var(--panel-edge);
+  font-weight: 800; font-size: 1.35rem; color: var(--amber); font-variant-numeric: tabular-nums;
+}
+.sb-clock.low { color: var(--save); animation: pulse 1s ease-in-out infinite; }
+
+/* Penalty record dots */
+.shots { display: flex; align-items: center; gap: 12px; }
+.dots { flex: 1; min-width: 0; display: flex; gap: 5px; }
+.dot { flex: 0 1 22px; min-width: 0; aspect-ratio: 1; border-radius: 50%; border: 2px solid var(--text-soft); opacity: 0.6; }
+.dot.now { border-color: var(--amber); opacity: 1; box-shadow: 0 0 0 3px rgba(255, 184, 28, 0.25); }
+.dot.scored { background: var(--goal); border-color: var(--goal); opacity: 1; }
+.dot.missed { background: rgba(255, 98, 89, 0.3); border-color: var(--save); opacity: 1; }
+.dots.big { flex: none; justify-content: center; gap: 7px; }
+.dots.big .dot { flex-basis: 30px; }
+.count { flex: none; white-space: nowrap; font-family: var(--font-display); font-size: 0.78rem; color: var(--text-soft); letter-spacing: 0.03em; }
+
+/* Goalmouth scene */
+.pitch-wrap { position: relative; flex: none; border-radius: 14px; overflow: hidden; border: 2px solid var(--panel-edge); background: var(--night); }
+.scene { display: block; width: 100%; height: clamp(110px, 19vh, 190px); }
+#startPitch .scene { height: clamp(150px, 26vh, 210px); }
+.scene .sky { fill: var(--night); }
+.scene .crowd { opacity: 0.72; }
+.scene .crowd.cheer { opacity: 1; }
+.scene .fan { transform-box: fill-box; transform-origin: center; }
+.scene .fan.home { fill: var(--kit); }
+.scene .crowd.cheer .fan { animation: hop 0.2s ease-in-out 6 alternate; }
+.scene .boards { fill: #0c1a3c; }
+.scene .boards-text { fill: var(--amber); font-family: var(--font-display); font-size: 7px; letter-spacing: 0.4px; }
+.scene .grass { fill: var(--grass); }
+.scene .grass2 { fill: var(--grass-2); }
+.scene .chalk { fill: none; stroke: var(--chalk); stroke-width: 1.4; opacity: 0.85; }
+.scene .spot { fill: var(--chalk); }
+.scene .net-back { fill: rgba(0, 0, 0, 0.3); }
+.scene .net-line { stroke: #ffffff; stroke-opacity: 0.38; stroke-width: 0.7; }
+.scene .net-side { fill: rgba(255, 255, 255, 0.07); stroke: rgba(255, 255, 255, 0.35); stroke-width: 0.6; }
+.scene .net-rim { fill: none; stroke: rgba(255, 255, 255, 0.4); stroke-width: 0.7; }
+.scene .post { fill: #ffffff; }
+.scene .kp-shirt { fill: var(--keeper); }
+.scene .kp-arm { fill: none; stroke: var(--keeper); stroke-width: 5; stroke-linecap: round; }
+.scene .kp-glove { fill: #ffffff; }
+.scene .kp-shorts { fill: #1b1b1b; }
+.scene .kp-sock { fill: var(--keeper); }
+.scene .boot { fill: #111111; }
+.scene .skin { fill: var(--skin); }
+.scene .hair { fill: var(--hair); }
+.scene .eye { fill: #1b1b1b; }
+.scene .kit { fill: var(--kit); }
+.scene .shorts { fill: var(--kit-shorts); }
+.scene .kit-num { fill: var(--kit-num); font-family: var(--font-display); font-size: 13px; }
+.ball { fill: #ffffff; stroke: #1b1b1b; stroke-width: 0.8; }
+.ball-patch { fill: #1b1b1b; }
+.ball-seam { fill: none; stroke: #1b1b1b; stroke-width: 0.8; }
+.scene .ball-shadow { fill: #000000; }
+.banner {
+  position: absolute; left: 0; right: 0; top: 22%; margin: 0;
+  text-align: center; pointer-events: none; opacity: 0;
+  font-family: var(--font-display); font-size: clamp(2.4rem, 13vw, 3.6rem); line-height: 1;
+}
+.banner.goal { color: var(--amber); text-shadow: 0 4px 0 var(--amber-deep), 0 0 26px rgba(255, 184, 28, 0.75); }
+.banner.save { color: #ffffff; text-shadow: 0 4px 0 #8a1f1a, 0 0 20px rgba(255, 98, 89, 0.7); }
+.banner.show { opacity: 1; animation: bannerPop 0.5s cubic-bezier(.2, 1.5, .4, 1) both; }
+.confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.confetti i { position: absolute; left: 50%; top: 40%; width: 7px; height: 11px; border-radius: 2px; animation: burst 1.1s ease-out forwards; }
+
+/* The big screen with the sum on it */
+.board {
+  --c: clamp(32px, 5.4vh, 50px);
+  flex: none; display: grid; place-items: center; padding: 8px 0 10px;
+  border-radius: 14px; border: 2px solid var(--panel-edge);
+  background-color: var(--screen);
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1.3px);
+  background-size: 4px 4px;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.6);
+}
+.sumgrid {
+  display: grid; column-gap: 4px;
+  grid-template-columns: repeat(3, var(--c));
+  grid-template-rows: calc(var(--c) * 0.5) var(--c) var(--c) calc(var(--c) * 1.1);
+}
+.board.three .sumgrid { grid-template-columns: repeat(4, var(--c)); }
+.lab { grid-row: 1; display: grid; place-items: center; font-family: var(--font-display); font-size: calc(var(--c) * 0.32); color: var(--amber); }
+.dg, .op { display: grid; place-items: center; font-weight: 800; font-size: calc(var(--c) * 0.8); line-height: 1; color: var(--text); font-variant-numeric: tabular-nums; }
+.op { color: var(--amber); }
+.r2 { grid-row: 2; }
+.r3 { grid-row: 3; }
+.c1 { grid-column: 1; }
+.c2 { grid-column: 2; }
+.c3 { grid-column: 3; }
+.c4 { grid-column: 4; }
+.rule { grid-row: 4; grid-column: 1 / -1; align-self: start; height: 3px; background: var(--text); border-radius: 2px; }
+.box {
+  grid-row: 4; margin-top: 8px; padding: 0;
+  display: grid; place-items: center;
+  border: 2.5px dashed var(--text-soft); border-radius: 10px; background: transparent;
+  font-weight: 800; font-size: calc(var(--c) * 0.72); line-height: 1; color: var(--text);
+  font-variant-numeric: tabular-nums; cursor: pointer;
+}
+.box.active { border-style: solid; border-color: var(--amber); background: rgba(255, 184, 28, 0.18); }
+.box.active.empty::after { content: ""; width: 3px; height: 55%; border-radius: 2px; background: var(--amber); animation: blink 1s steps(1) infinite; }
+.box.correct { border-style: solid; border-color: var(--goal); color: var(--goal); background: rgba(79, 224, 138, 0.14); }
+.box.wrong { border-style: solid; border-color: var(--save); color: var(--save); animation: shake 0.4s; }
+
+.msg { margin: 0; min-height: 1.4em; text-align: center; font-weight: 700; font-size: 1rem; color: var(--text-soft); }
+.msg.ok { color: var(--goal); }
+.msg.bad { color: var(--save); }
+
+/* Number pad */
+.pad { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.key {
+  height: clamp(44px, 6.6vh, 62px); padding: 0;
+  display: grid; place-items: center;
+  border-radius: 14px; border: 2px solid var(--key-edge); border-bottom-width: 5px;
+  background: var(--key); color: var(--text);
+  font-weight: 800; font-size: 1.7rem;
+  cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+}
+.key:active { transform: translateY(2px); border-bottom-width: 3px; }
+.key.zero { grid-column: span 2; }
+.key svg { width: 30px; height: 30px; }
+.pad.two .key.zero { grid-column: auto; order: 2; }
+.pad.two #delKey { order: 1; }
+.pad.two .shoot { order: 3; }
+.key.shoot { font-family: var(--font-display); font-size: 1.05rem; background: var(--amber); color: var(--on-amber); border-color: var(--on-amber); }
+.key.shoot:disabled { background: var(--key); color: var(--text-soft); border-color: var(--key-edge); cursor: default; opacity: 0.7; }
+.key.shoot:disabled:active { transform: none; border-bottom-width: 5px; }
+
+/* Start screen */
+.hero { display: flex; flex-direction: column; gap: 8px; }
+.eyebrow { margin: 0; font-family: var(--font-display); font-size: 0.8rem; letter-spacing: 0.12em; color: var(--amber); }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(2rem, 10vw, 2.7rem); line-height: 1; text-wrap: balance; text-shadow: 0 3px 0 #000000; }
+.lede { margin: 0; font-size: 1.05rem; line-height: 1.45; color: var(--text); }
+.card { background: var(--panel); border: 2px solid var(--panel-edge); border-radius: 14px; padding: 2px 12px; }
+.set-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 12px; padding: 9px 0; }
+.set-row + .set-row { border-top: 2px dashed var(--panel-edge); }
+.set-row.sub { border-top: 0; padding-top: 0; }
+.set-label { font-weight: 700; font-size: 1rem; }
+.set-label.soft { font-weight: 600; color: var(--text-soft); }
+.team-input {
+  flex: 1 1 140px; max-width: 210px; min-width: 0; height: 40px; padding: 0 10px;
+  border-radius: 10px; border: 2px solid var(--panel-edge); background: var(--screen); color: var(--text);
+  font-family: var(--font-display); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.team-input::placeholder { color: var(--text-soft); }
+.swatches { display: flex; flex-wrap: wrap; gap: 7px; }
+.swatch {
+  width: 32px; height: 32px; padding: 0; border-radius: 50%; cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.3); background: var(--sw);
+}
+.swatch[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px var(--amber); }
+.seg { display: inline-flex; border: 2px solid var(--key-edge); border-radius: 12px; overflow: hidden; }
+.seg button {
+  min-height: 40px; padding: 6px 12px; border: 0; background: transparent; cursor: pointer;
+  font-weight: 700; font-size: 0.95rem; color: var(--text-soft);
+}
+.seg button + button { border-left: 2px solid var(--key-edge); }
+.seg button[aria-pressed="true"] { background: var(--amber); color: var(--on-amber); }
+.stepper { display: inline-flex; align-items: center; gap: 6px; }
+.step {
+  width: 40px; height: 40px; padding: 0; border-radius: 50%; cursor: pointer;
+  display: grid; place-items: center;
+  border: 2px solid var(--key-edge); border-bottom-width: 3px; background: var(--key); color: var(--text);
+  font-weight: 800; font-size: 1.35rem; line-height: 1;
+}
+.step:disabled { opacity: 0.35; cursor: default; }
+.step-val { min-width: 4.4ch; text-align: center; font-weight: 800; font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.best { margin: 0; text-align: center; font-weight: 600; color: var(--text-soft); }
+.start-foot { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+.go {
+  height: 62px; border-radius: 18px; cursor: pointer;
+  border: 3px solid var(--on-amber); border-bottom-width: 6px;
+  background: var(--amber); color: var(--on-amber);
+  font-family: var(--font-display); font-size: 1.45rem;
+}
+.go:active { transform: translateY(2px); border-bottom-width: 4px; }
+.ghost {
+  height: 54px; border-radius: 16px; cursor: pointer;
+  border: 2px solid var(--key-edge); border-bottom-width: 4px; background: var(--key); color: var(--text);
+  font-weight: 700; font-size: 1.1rem;
+}
+
+/* Hand-over screen (2 players) */
+.hand-hero { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding-top: 14px; }
+.hand-kit { width: 88px; height: 88px; }
+.hand-kit svg { width: 100%; height: 100%; display: block; }
+.shirt-num { font-family: var(--font-display); font-size: 20px; }
+.prev { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px; text-align: center; border-radius: 14px; background: var(--panel); border: 2px solid var(--panel-edge); }
+.prev p { margin: 0; font-size: 1.05rem; line-height: 1.4; }
+.rules { margin: 0; text-align: center; color: var(--text-soft); line-height: 1.45; }
+
+/* End screens */
+.end-hero { position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0 4px; }
+.end-icon { width: 80px; height: 80px; }
+.end-icon svg { width: 100%; height: 100%; }
+.end-icon.thump { animation: thump 0.5s cubic-bezier(.2, 1.4, .4, 1) both; }
+.cup { fill: var(--amber); }
+.cup-arm { fill: none; stroke: var(--amber); stroke-width: 4; stroke-linecap: round; }
+.cup-base { fill: #7a4b12; }
+.cup-shine { stroke: #fff3c4; stroke-width: 3; stroke-linecap: round; opacity: 0.7; }
+.wh { fill: #d7dde8; }
+.wh-hole { fill: var(--panel); }
+.wh-cord { fill: none; stroke: var(--save); stroke-width: 3; stroke-linecap: round; }
+h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: clamp(1.8rem, 9vw, 2.6rem); line-height: 1.05; text-align: center; text-wrap: balance; overflow-wrap: anywhere; }
+h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
+.final {
+  display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
+  padding: 10px 12px; border-radius: 12px; background: var(--panel); border: 2px solid var(--panel-edge);
+}
+.f-name { min-width: 0; overflow-wrap: anywhere; text-align: center; font-family: var(--font-display); font-size: 0.85rem; letter-spacing: 0.03em; }
+.final b { font-weight: 800; font-size: 2.3rem; line-height: 1; color: var(--amber); font-variant-numeric: tabular-nums; }
+.f-dash { font-weight: 800; font-size: 1.6rem; color: var(--text-soft); }
+.end-line { margin: 0; text-align: center; font-size: 1.1rem; line-height: 1.4; }
+.extra { margin: 0; text-align: center; font-weight: 700; color: var(--goal); }
+.end-actions { display: grid; gap: 10px; }
+.results { margin: 0; padding: 0; list-style: none; border-radius: 12px; background: var(--panel); border: 2px solid var(--panel-edge); overflow: hidden; }
+.results li {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 46px; padding: 6px 14px;
+  font-weight: 700; font-size: 1.15rem; font-variant-numeric: tabular-nums;
+}
+.results li + li { border-top: 1px solid var(--panel-edge); }
+.results .pen { color: var(--text-soft); font-size: 0.85rem; font-weight: 600; margin-right: 10px; }
+.results li.missed { color: var(--text-soft); }
+.mini-ball { width: 22px; height: 22px; flex: none; }
+.miss-tag { font-size: 0.85rem; font-weight: 600; color: var(--text-soft); }
+.pl-rows { display: grid; gap: 10px; }
+.pl-row {
+  display: grid; grid-template-columns: 14px minmax(0, 1fr) auto auto; align-items: center; gap: 10px 14px;
+  padding: 12px 14px; border-radius: 14px; background: var(--panel); border: 2px solid var(--panel-edge);
+}
+.pl-row.winner { border-color: var(--amber); box-shadow: 0 0 0 3px rgba(255, 184, 28, 0.2); }
+.pl-chip { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.35); }
+.pl-name { min-width: 0; overflow-wrap: anywhere; font-family: var(--font-display); font-size: 0.95rem; line-height: 1.1; }
+.pl-lvl { display: block; margin-top: 3px; font-family: var(--font-body); font-weight: 600; font-size: 0.78rem; color: var(--text-soft); }
+.win-tag { display: block; margin-top: 3px; font-family: var(--font-body); font-weight: 700; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--amber); }
+.pl-stat { text-align: right; white-space: nowrap; color: var(--text-soft); font-size: 0.8rem; }
+.pl-stat b { display: block; color: var(--amber); font-size: 1.5rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.pl-row .dots { grid-column: 1 / -1; }
+
+@keyframes pulse { 50% { transform: scale(1.1); } }
+@keyframes blink { 50% { opacity: 0; } }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+@keyframes hop { to { transform: translateY(-2.5px); } }
+@keyframes flash { 0% { transform: scale(1.6); color: #ffffff; } 100% { transform: scale(1); } }
+@keyframes bannerPop { from { transform: scale(0.2) rotate(-10deg); opacity: 0; } to { transform: scale(1) rotate(-4deg); opacity: 1; } }
+@keyframes burst { from { transform: translate(0, 0) rotate(0deg); opacity: 1; } to { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 0; } }
+@keyframes thump { from { transform: scale(1.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* Link back to the games list, shown on the start screen only */
+.home-link { display: none; align-items: center; text-decoration: none; }
+body:has(#start:not([hidden])) .home-link { display: inline-flex; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="bar">
+    <a class="chip home-link" href="./">&lsaquo; All games</a>
+    <span class="wordmark" id="wordmark" hidden>Penalty Shootout</span>
+    <div class="bar-actions">
+      <button class="chip" id="stopBtn" type="button" hidden>Stop</button>
+      <button class="icon-btn" id="soundBtn" type="button" aria-pressed="true" aria-label="Sound"></button>
+    </div>
+  </header>
+
+  <!-- START -->
+  <section class="screen" id="start">
+    <div class="hero">
+      <p class="eyebrow">The Maths Cup</p>
+      <h1>Penalty Shootout</h1>
+      <p class="lede" id="lede">Get a sum right to score a penalty. Score 5 before full time. You have 1 minute!</p>
+    </div>
+
+    <div class="pitch-wrap" id="startPitch"></div>
+
+    <div class="card" role="group" aria-label="Players">
+      <div class="set-row">
+        <span class="set-label" id="lblMode">Players</span>
+        <div class="seg" role="group" aria-labelledby="lblMode">
+          <button type="button" id="mode1" data-mode="1">1 player</button>
+          <button type="button" id="mode2" data-mode="2">2 players</button>
+        </div>
+      </div>
+      <div class="set-row" data-show="1">
+        <label class="set-label" for="teamName">Your team</label>
+        <input class="team-input" id="teamName" data-who="team" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="HOME">
+      </div>
+      <div class="set-row" data-show="1">
+        <span class="set-label" id="lblKit">Kit</span>
+        <div class="swatches" data-who="team" role="group" aria-labelledby="lblKit"></div>
+      </div>
+      <div class="set-row" data-show="2">
+        <label class="set-label" for="p1Name">Player 1</label>
+        <input class="team-input" id="p1Name" data-who="p1" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="PLAYER 1">
+      </div>
+      <div class="set-row sub" data-show="2">
+        <span class="set-label soft" id="lblKit1">Kit</span>
+        <div class="swatches" data-who="p1" role="group" aria-labelledby="lblKit1"></div>
+      </div>
+      <div class="set-row sub" data-show="2">
+        <span class="set-label soft" id="lblDigits1">Numbers</span>
+        <div class="seg" role="group" aria-labelledby="lblDigits1">
+          <button type="button" id="p1d2" data-pset="digits" data-who="p1" data-v="2">2 digits</button>
+          <button type="button" id="p1d3" data-pset="digits" data-who="p1" data-v="3">3 digits</button>
+        </div>
+      </div>
+      <div class="set-row sub" data-show="2">
+        <span class="set-label soft" id="lblCarry1">Sums</span>
+        <div class="seg" role="group" aria-labelledby="lblCarry1">
+          <button type="button" id="p1c0" data-pset="carry" data-who="p1" data-v="0">No carrying</button>
+          <button type="button" id="p1c1" data-pset="carry" data-who="p1" data-v="1">Carrying</button>
+        </div>
+      </div>
+      <div class="set-row" data-show="2">
+        <label class="set-label" for="p2Name">Player 2</label>
+        <input class="team-input" id="p2Name" data-who="p2" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="PLAYER 2">
+      </div>
+      <div class="set-row sub" data-show="2">
+        <span class="set-label soft" id="lblKit2">Kit</span>
+        <div class="swatches" data-who="p2" role="group" aria-labelledby="lblKit2"></div>
+      </div>
+      <div class="set-row sub" data-show="2">
+        <span class="set-label soft" id="lblDigits2">Numbers</span>
+        <div class="seg" role="group" aria-labelledby="lblDigits2">
+          <button type="button" id="p2d2" data-pset="digits" data-who="p2" data-v="2">2 digits</button>
+          <button type="button" id="p2d3" data-pset="digits" data-who="p2" data-v="3">3 digits</button>
+        </div>
+      </div>
+      <div class="set-row sub" data-show="2">
+        <span class="set-label soft" id="lblCarry2">Sums</span>
+        <div class="seg" role="group" aria-labelledby="lblCarry2">
+          <button type="button" id="p2c0" data-pset="carry" data-who="p2" data-v="0">No carrying</button>
+          <button type="button" id="p2c1" data-pset="carry" data-who="p2" data-v="1">Carrying</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" role="group" aria-label="Game settings">
+      <div class="set-row">
+        <span class="set-label" id="lblCount">Penalties</span>
+        <div class="stepper">
+          <button class="step" type="button" id="countDown" data-step="count" data-dir="-1" aria-label="Fewer penalties">&minus;</button>
+          <output class="step-val" id="countVal" aria-labelledby="lblCount">5</output>
+          <button class="step" type="button" id="countUp" data-step="count" data-dir="1" aria-label="More penalties">+</button>
+        </div>
+      </div>
+      <div class="set-row" data-show="1">
+        <span class="set-label" id="lblDigits">Numbers</span>
+        <div class="seg" role="group" aria-labelledby="lblDigits">
+          <button type="button" id="digits2" data-set="digits" data-v="2">2 digits</button>
+          <button type="button" id="digits3" data-set="digits" data-v="3">3 digits</button>
+        </div>
+      </div>
+      <div class="set-row" data-show="1">
+        <span class="set-label" id="lblCarry">Sums</span>
+        <div class="seg" role="group" aria-labelledby="lblCarry">
+          <button type="button" id="carry0" data-set="carry" data-v="0">No carrying</button>
+          <button type="button" id="carry1" data-set="carry" data-v="1">Carrying</button>
+        </div>
+      </div>
+      <div class="set-row" data-show="1">
+        <span class="set-label" id="lblTime">Time</span>
+        <div class="stepper">
+          <button class="step" type="button" id="timeDown" data-step="time" data-dir="-1" aria-label="Less time">&minus;</button>
+          <output class="step-val" id="timeVal" aria-labelledby="lblTime">1 min</output>
+          <button class="step" type="button" id="timeUp" data-step="time" data-dir="1" aria-label="More time">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="start-foot">
+      <p class="best" id="bestLine" data-show="1">No best time yet. Can you set one?</p>
+      <button class="go" id="goBtn" type="button">Kick off!</button>
+    </div>
+  </section>
+
+  <!-- HAND-OVER (2 players) -->
+  <section class="screen" id="handover" hidden>
+    <div class="hand-hero">
+      <div class="hand-kit" id="handKit"></div>
+      <p class="eyebrow" id="handEyebrow">Player 1</p>
+      <h2 id="handTitle">You're first!</h2>
+      <p class="end-line" id="handLine"></p>
+    </div>
+    <div class="pl-rows" id="handTable" aria-label="Shootout so far"></div>
+    <p class="rules" id="handRules">Your clock runs while you work out the sum. It stops when you press Shoot.</p>
+    <div class="start-foot">
+      <button class="go" id="readyBtn" type="button">I'm ready!</button>
+    </div>
+  </section>
+
+  <!-- PLAY -->
+  <section class="screen" id="play" hidden>
+    <div class="scoreboard">
+      <div class="sb-side home" id="sbHome"><span class="sb-name" id="sbHomeName">HOME</span><span class="sb-score" id="sbHomeScore">0</span></div>
+      <div class="sb-clock" id="clock">1:00</div>
+      <div class="sb-side away" id="sbAway"><span class="sb-score" id="sbAwayScore">0</span><span class="sb-name" id="sbAwayName">KEEPER</span></div>
+    </div>
+    <div class="shots">
+      <div class="dots" id="dots" role="img"></div>
+      <span class="count" id="count">Penalty 1 of 5</span>
+    </div>
+    <div class="pitch-wrap" id="playPitch"></div>
+    <div class="board" id="board"><div class="sumgrid" id="sumgrid" role="group"></div></div>
+    <p class="msg" id="msg" aria-live="polite"></p>
+    <div class="pad" id="pad">
+      <button class="key" type="button" data-d="1">1</button>
+      <button class="key" type="button" data-d="2">2</button>
+      <button class="key" type="button" data-d="3">3</button>
+      <button class="key" type="button" data-d="4">4</button>
+      <button class="key" type="button" data-d="5">5</button>
+      <button class="key" type="button" data-d="6">6</button>
+      <button class="key" type="button" data-d="7">7</button>
+      <button class="key" type="button" data-d="8">8</button>
+      <button class="key" type="button" data-d="9">9</button>
+      <button class="key zero" type="button" data-d="0">0</button>
+      <button class="key" type="button" id="delKey" aria-label="Rub out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M17 9l-6 6M11 9l6 6"/></svg>
+      </button>
+      <button class="key shoot" type="button" id="shootKey" hidden disabled>Shoot!</button>
+    </div>
+  </section>
+
+  <!-- END (1 player) -->
+  <section class="screen" id="end" hidden>
+    <div class="end-hero">
+      <div class="end-icon" id="endIcon"></div>
+      <h2 id="endTitle">Champions!</h2>
+      <div class="confetti" id="endConfetti"></div>
+    </div>
+    <div class="final" aria-label="Final score">
+      <span class="f-name" id="fName">HOME</span><b id="fGoals">0</b><span class="f-dash">–</span><b id="fSaves">0</b><span class="f-name">KEEPER</span>
+    </div>
+    <p class="end-line" id="endLine"></p>
+    <p class="extra" id="endExtra"></p>
+    <div class="dots big" id="endDots" role="img"></div>
+    <div class="end-actions">
+      <button class="go" id="againBtn" type="button">Play again</button>
+      <button class="ghost" id="levelBtn" type="button">Change settings</button>
+    </div>
+    <ol class="results" id="results" aria-label="Your penalties"></ol>
+  </section>
+
+  <!-- RESULT (2 players) -->
+  <section class="screen" id="result" hidden>
+    <div class="end-hero">
+      <div class="end-icon" id="resIcon"></div>
+      <h2 class="win" id="resTitle">Player 1 wins!</h2>
+      <div class="confetti" id="resConfetti"></div>
+    </div>
+    <p class="end-line" id="resLine"></p>
+    <div class="pl-rows" id="resTable"></div>
+    <div class="end-actions">
+      <button class="go" id="rematchBtn" type="button">Rematch</button>
+      <button class="ghost" id="resSettingsBtn" type="button">Change settings</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var COUNT_OPTS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30];
+  var TIME_OPTS = [30, 45, 60, 90, 120, 180, 240, 300];
+  var PLACE = { H: "Hundreds", T: "Tens", U: "Units" };
+  var KITS = [
+    { id: "green", name: "Green", kit: "#1f9e4a", num: "#ffffff", shorts: "#ffffff" },
+    { id: "red", name: "Red", kit: "#e03131", num: "#ffffff", shorts: "#ffffff" },
+    { id: "blue", name: "Blue", kit: "#2563eb", num: "#ffffff", shorts: "#ffffff" },
+    { id: "sky", name: "Sky blue", kit: "#62bdf2", num: "#0b1d3f", shorts: "#0b1d3f" },
+    { id: "white", name: "White", kit: "#f4f6fb", num: "#0b1d3f", shorts: "#0b1d3f" },
+    { id: "orange", name: "Orange", kit: "#f97316", num: "#ffffff", shorts: "#111827" },
+    { id: "purple", name: "Purple", kit: "#8b5cf6", num: "#ffffff", shorts: "#ffffff" }
+  ];
+  var DEFAULT_NAME = { team: "HOME", p1: "PLAYER 1", p2: "PLAYER 2" };
+  var REDUCED = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  var $ = function (s) { return document.querySelector(s); };
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
+  function loadCfg() {
+    var d = { digits: 2, carry: false, count: 5, time: 60 };
+    try {
+      var o = JSON.parse(store.get("ps-cfg") || "{}");
+      if (o.digits === 3) d.digits = 3;
+      if (o.carry === true) d.carry = true;
+      if (COUNT_OPTS.indexOf(o.count) >= 0) d.count = o.count;
+      if (TIME_OPTS.indexOf(o.time) >= 0) d.time = o.time;
+    } catch (e) {}
+    return d;
+  }
+  var cfg = loadCfg();
+  function saveCfg() { store.set("ps-cfg", JSON.stringify(cfg)); }
+  function bestKey() { return "ps-best-" + cfg.digits + (cfg.carry ? "c" : "n") + "-" + cfg.count + "-" + cfg.time; }
+  var soundOn = store.get("ps-sound") !== "off";
+  var players = store.get("ps-mode") === "2" ? 2 : 1;
+  var STORE_KEYS = { team: ["ps-team", "ps-kit"], p1: ["ps-p1", "ps-kit1"], p2: ["ps-p2", "ps-kit2"] };
+  var names = { team: store.get("ps-team") || "", p1: store.get("ps-p1") || "", p2: store.get("ps-p2") || "" };
+  var kits = { team: store.get("ps-kit") || "green", p1: store.get("ps-kit1") || "green", p2: store.get("ps-kit2") || "red" };
+  // Each player's own level in a 2-player match (so an adult and a child can play fairly).
+  function loadLevels() {
+    var d = { p1: { digits: cfg.digits, carry: cfg.carry }, p2: { digits: cfg.digits, carry: cfg.carry } };
+    try {
+      var o = JSON.parse(store.get("ps-levels") || "{}");
+      ["p1", "p2"].forEach(function (w) {
+        if (o[w] && (o[w].digits === 2 || o[w].digits === 3)) d[w].digits = o[w].digits;
+        if (o[w] && typeof o[w].carry === "boolean") d[w].carry = o[w].carry;
+      });
+    } catch (e) {}
+    return d;
+  }
+  var levels = loadLevels();
+  function saveLevels() { store.set("ps-levels", JSON.stringify(levels)); }
+  function levelWords(L) { return L.digits + " digits, " + (L.carry ? "carrying" : "no carrying"); }
+  function labelFor(who) { return (names[who].trim() || DEFAULT_NAME[who]).toUpperCase(); }
+  function kitById(id) { return KITS.filter(function (k) { return k.id === id; })[0] || KITS[0]; }
+
+  var mode = "start", game = 0, rafId = 0;
+  var sums = [], idx = 0, limitMs = 60000, n = 2;
+  var entry = [], active = 0, locked = false, goals = 0, saves = 0, tries = 0, finishMs = 0;
+  var clockBase = 0, clockStart = 0, clockRunning = false;
+  var boxes = [];
+  var duel = null; // two-player match: { p: [player, player], cp: index of the player taking their turn }
+
+  var screens = { start: $("#start"), handover: $("#handover"), play: $("#play"), end: $("#end"), result: $("#result") };
+  var clockEl = $("#clock"), msgEl = $("#msg"), countEl = $("#count");
+  var board = $("#board"), sumgrid = $("#sumgrid"), dotsEl = $("#dots"), shootKey = $("#shootKey");
+
+  /* ---------- sound ---------- */
+  var ac = null, noiseBuf = null;
+  function audio() {
+    if (!soundOn) return null;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === "suspended") ac.resume();
+      return ac;
+    } catch (e) { return null; }
+  }
+  function env(g, t, vol, dur) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  }
+  function tone(f, at, dur, vol) {
+    var c = audio(); if (!c) return;
+    var t = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+    o.type = "triangle"; o.frequency.value = f; env(g, t, vol || 0.14, dur);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function thud(at, f0, f1, dur, vol) {
+    var c = audio(); if (!c) return;
+    var t = c.currentTime + at, o = c.createOscillator(), g = c.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    env(g, t, vol, dur); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function crowd(at, dur, vol, freq) {
+    var c = audio(); if (!c) return;
+    if (!noiseBuf) {
+      noiseBuf = c.createBuffer(1, c.sampleRate * 2, c.sampleRate);
+      var d = noiseBuf.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    var t = c.currentTime + at, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = noiseBuf; s.loop = true;
+    f.type = "bandpass"; f.frequency.value = freq; f.Q.value = 0.7;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.15);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(g); g.connect(c.destination); s.start(t); s.stop(t + dur + 0.05);
+  }
+  function whistle(at, dur) {
+    var c = audio(); if (!c) return;
+    var t = c.currentTime + at, o = c.createOscillator(), lfo = c.createOscillator(), lg = c.createGain(), g = c.createGain();
+    o.type = "sine"; o.frequency.value = 2900;
+    lfo.frequency.value = 32; lg.gain.value = 140; lfo.connect(lg); lg.connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.06, t + 0.02);
+    g.gain.setValueAtTime(0.06, t + dur - 0.04);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(t); lfo.start(t); o.stop(t + dur + 0.05); lfo.stop(t + dur + 0.05);
+  }
+  var sfx = {
+    kickoff: function () { whistle(0, 0.45); },
+    kick: function () { thud(0, 170, 50, 0.14, 0.5); },
+    goal: function () { crowd(0, 1.7, 0.3, 1000); tone(784, 0.05, 0.14); tone(1047, 0.17, 0.26); },
+    save: function () { thud(0, 130, 70, 0.12, 0.35); crowd(0.05, 0.9, 0.12, 420); },
+    win: function () {
+      whistle(0, 0.25); whistle(0.32, 0.25); whistle(0.64, 0.6); crowd(0.2, 2.4, 0.3, 1000);
+      [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.9 + i * 0.12, 0.32, 0.15); });
+    },
+    fulltime: function () { whistle(0, 0.25); whistle(0.32, 0.25); whistle(0.64, 0.75); }
+  };
+  var ICON_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
+  var ICON_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+  function paintSound() {
+    var b = $("#soundBtn");
+    b.innerHTML = soundOn ? ICON_ON : ICON_OFF;
+    b.setAttribute("aria-pressed", String(soundOn));
+    b.setAttribute("aria-label", soundOn ? "Sound is on" : "Sound is off");
+  }
+
+  /* ---------- words for time ---------- */
+  function half(m) { return m % 1 ? Math.floor(m) + "½" : String(m); }
+  function timeWords(s) { if (s < 60) return s + " seconds"; var m = s / 60; return half(m) + (m === 1 ? " minute" : " minutes"); }
+  function timeShort(s) { return s < 60 ? s + " sec" : half(s / 60) + " min"; }
+  function durWords(ms) {
+    var s = Math.max(1, Math.round(ms / 1000));
+    if (s < 60) return s + (s === 1 ? " second" : " seconds");
+    var m = Math.floor(s / 60), r = s % 60;
+    return m + (m === 1 ? " minute" : " minutes") + (r ? " and " + r + (r === 1 ? " second" : " seconds") : "");
+  }
+  function clockText(ms) { var s = Math.ceil(ms / 1000), m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
+  // Stopwatch to a tenth of a second: 12.3 or 1:02.3
+  function tenths(ms) { return Math.floor(ms / 100); }
+  function watchText(ms) {
+    var t = tenths(ms), s = t / 10;
+    if (s < 60) return s.toFixed(1);
+    var m = Math.floor(s / 60), r = s - m * 60;
+    return m + ":" + (r < 10 ? "0" : "") + r.toFixed(1);
+  }
+  function watchWords(ms) {
+    var s = tenths(ms) / 10;
+    if (s < 60) return s.toFixed(1) + " seconds";
+    var m = Math.floor(s / 60);
+    return m + (m === 1 ? " minute " : " minutes ") + (s - m * 60).toFixed(1) + " seconds";
+  }
+
+  /* ---------- sums ---------- */
+  function rnd(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+  function makeSum(digits, carry) {
+    var P = {};
+    if (carry) {
+      if (digits === 2) P[0] = true;
+      else { var r = rnd(0, 2); if (r !== 1) P[0] = true; if (r !== 0) P[1] = true; }
+    }
+    var a = 0, b = 0, c = 0, place = 1;
+    for (var i = 0; i < digits; i++) {
+      // Pick fairly from every digit pair that fits this column, so no digit gets favoured.
+      var cin = c, opts = [];
+      for (var x = 1; x <= 9; x++) {
+        for (var y = 1; y <= 9; y++) {
+          var t = x + y + cin;
+          if (i === digits - 1 ? t <= 9 : P[i] ? t >= 10 : t <= 9) opts.push([x, y]);
+        }
+      }
+      var xy = opts[Math.floor(Math.random() * opts.length)];
+      a += xy[0] * place; b += xy[1] * place;
+      c = xy[0] + xy[1] + cin >= 10 ? 1 : 0;
+      place *= 10;
+    }
+    return Math.random() < 0.5 ? { a: a, b: b } : { a: b, b: a };
+  }
+  function makeRound(digits, carry) {
+    if (digits === undefined) { digits = cfg.digits; carry = cfg.carry; }
+    var out = [], seen = {}, used = {}, guard = 0;
+    while (out.length < cfg.count) {
+      var s = makeSum(digits, carry), k = Math.min(s.a, s.b) + "+" + Math.max(s.a, s.b);
+      if ((seen[k] || used[s.a] || used[s.b]) && guard++ < 500) continue;
+      seen[k] = true; used[s.a] = true; used[s.b] = true; s.done = false; s.taken = false; out.push(s);
+    }
+    return out;
+  }
+  function digitsOf(v, len) { var s = String(v); while (s.length < len) s = "0" + s; return s.split(""); }
+
+  /* ---------- the scene ---------- */
+  var BALL_INNER = '<circle class="ball" r="8"/><path class="ball-patch" d="M0 -3.4L3.2 -1L2 2.8H-2L-3.2 -1Z"/><path class="ball-seam" d="M0 -3.4V-7.8M3.2 -1L7.4 -2.4M2 2.8L4.5 6.6M-2 2.8L-4.5 6.6M-3.2 -1L-7.4 -2.4"/>';
+  function sceneSVG(p) {
+    var bands = [8, 10, 12, 14, 16, 18, 20, 14], y = 58, stripes = "";
+    bands.forEach(function (h, i) { stripes += '<rect class="' + (i % 2 ? "grass2" : "grass") + '" x="0" y="' + y + '" width="360" height="' + h + '"/>'; y += h; });
+    return '<svg class="scene" viewBox="0 0 360 170" preserveAspectRatio="xMidYMax slice" role="img" aria-label="The ball is on the penalty spot and the goalkeeper is waiting">' +
+      '<defs>' +
+        '<pattern id="' + p + 'net" width="7" height="7" patternUnits="userSpaceOnUse"><path class="net-line" d="M0 0L7 7M7 0L0 7"/></pattern>' +
+        '<radialGradient id="' + p + 'glow"><stop offset="0" stop-color="#fff6d8" stop-opacity=".5"/><stop offset="1" stop-color="#fff6d8" stop-opacity="0"/></radialGradient>' +
+      '</defs>' +
+      '<rect class="sky" x="0" y="0" width="360" height="60"/>' +
+      '<g class="crowd"></g>' +
+      '<circle cx="16" cy="0" r="48" fill="url(#' + p + 'glow)"/><circle cx="344" cy="0" r="48" fill="url(#' + p + 'glow)"/>' +
+      '<rect class="boards" x="0" y="46" width="360" height="12"/>' +
+      '<text class="boards-text" x="180" y="55" text-anchor="middle">MATHS CUP · MATHS CUP · MATHS CUP · MATHS CUP · MATHS CUP</text>' +
+      stripes +
+      '<path class="chalk" d="M6 126H354M70 126L58 144H302L290 126M34 126L10 170M326 126L350 170"/>' +
+      '<circle class="spot" cx="180" cy="156" r="2.2"/>' +
+      '<g class="net">' +
+        '<rect class="net-back" x="100" y="66" width="160" height="60"/>' +
+        '<rect x="100" y="66" width="160" height="60" fill="url(#' + p + 'net)"/>' +
+        '<path class="net-side" d="M100 66L112 74V120L100 126ZM260 66L248 74V120L260 126Z"/>' +
+        '<path class="net-rim" d="M112 74H248M112 120H248"/>' +
+      '</g>' +
+      '<rect class="post" x="97" y="63" width="6" height="63"/><rect class="post" x="257" y="63" width="6" height="63"/><rect class="post" x="97" y="63" width="166" height="6"/>' +
+      '<g class="keeper" transform="translate(180 126)">' +
+        '<rect class="kp-sock" x="-7" y="-12" width="5" height="12" rx="2"/><rect class="kp-sock" x="2" y="-12" width="5" height="12" rx="2"/>' +
+        '<rect class="boot" x="-8.5" y="-2.5" width="7" height="3.5" rx="1.5"/><rect class="boot" x="1.5" y="-2.5" width="7" height="3.5" rx="1.5"/>' +
+        '<rect class="kp-shorts" x="-8" y="-20" width="16" height="9" rx="2"/>' +
+        '<path class="kp-arm" d="M-7 -35L-23 -46M7 -35L23 -46"/>' +
+        '<circle class="kp-glove" cx="-24" cy="-47" r="3.8"/><circle class="kp-glove" cx="24" cy="-47" r="3.8"/>' +
+        '<rect class="kp-shirt" x="-9.5" y="-39" width="19" height="20" rx="4.5"/>' +
+        '<circle class="skin" cx="0" cy="-45" r="6.5"/>' +
+        '<path class="hair" d="M-6.5 -46A6.5 6.5 0 0 1 6.5 -46Q0 -49 -6.5 -46Z"/>' +
+        '<circle class="eye" cx="-2.3" cy="-44.5" r="0.9"/><circle class="eye" cx="2.3" cy="-44.5" r="0.9"/>' +
+      '</g>' +
+      '<ellipse class="ball-shadow" rx="8" ry="2.6" transform="translate(180 163)" opacity=".35"/>' +
+      '<g class="striker" transform="translate(150 172)">' +
+        '<rect class="skin" x="-8" y="-16" width="5.5" height="14" rx="2.5"/><rect class="skin" x="2.5" y="-16" width="5.5" height="14" rx="2.5"/>' +
+        '<rect class="kit" x="-8.5" y="-9" width="6.5" height="9" rx="2"/><rect class="kit" x="2" y="-9" width="6.5" height="9" rx="2"/>' +
+        '<rect class="shorts" x="-10" y="-25" width="20" height="11" rx="3"/>' +
+        '<circle class="skin" cx="-15" cy="-33.5" r="2.6"/><circle class="skin" cx="15" cy="-33.5" r="2.6"/>' +
+        '<rect class="kit" x="-17.5" y="-48" width="7" height="13" rx="3.5" transform="rotate(10 -14 -46)"/>' +
+        '<rect class="kit" x="10.5" y="-48" width="7" height="13" rx="3.5" transform="rotate(-10 14 -46)"/>' +
+        '<rect class="kit" x="-11.5" y="-50" width="23" height="27" rx="6"/>' +
+        '<text class="kit-num" x="0" y="-31" text-anchor="middle">7</text>' +
+        '<rect class="skin" x="-2.5" y="-54" width="5" height="5"/>' +
+        '<circle class="hair" cx="0" cy="-59" r="7.5"/>' +
+        '<circle class="skin" cx="-7.6" cy="-58" r="1.8"/><circle class="skin" cx="7.6" cy="-58" r="1.8"/>' +
+      '</g>' +
+      '<g class="ball-g" transform="translate(180 156)"><g class="ball-spin">' + BALL_INNER + '</g></g>' +
+    '</svg>';
+  }
+  function makeScene(wrap, p, overlays) {
+    wrap.innerHTML = sceneSVG(p) + (overlays ? '<p class="banner" aria-hidden="true"></p><div class="confetti"></div>' : "");
+    var S = {
+      wrap: wrap,
+      keeper: wrap.querySelector(".keeper"), striker: wrap.querySelector(".striker"),
+      ball: wrap.querySelector(".ball-g"), spin: wrap.querySelector(".ball-spin"),
+      shadow: wrap.querySelector(".ball-shadow"), net: wrap.querySelector(".net"),
+      crowd: wrap.querySelector(".crowd"), banner: wrap.querySelector(".banner"), confetti: wrap.querySelector(".confetti")
+    };
+    var cols = ["#3b4f8a", "#56679d", "#8792b6", "#b8bfd6", "#c4524a", "#d9b443", "#e8e8f2"], h = "";
+    for (var row = 0; row < 5; row++) {
+      var yy = 10 + row * 7.2;
+      for (var x = row % 2 ? 3.5 : 0; x < 362; x += 7) {
+        var delay = (Math.random() * 0.2).toFixed(2);
+        h += Math.random() < 0.4
+          ? '<circle class="fan home" cx="' + x.toFixed(1) + '" cy="' + yy.toFixed(1) + '" r="2.7" style="animation-delay:' + delay + 's"/>'
+          : '<circle class="fan" cx="' + x.toFixed(1) + '" cy="' + yy.toFixed(1) + '" r="2.7" fill="' + cols[rnd(0, cols.length - 1)] + '" style="animation-delay:' + delay + 's"/>';
+      }
+    }
+    S.crowd.innerHTML = h;
+    return S;
+  }
+  function setKeeper(S, dx, dy, ang) { S.keeper.setAttribute("transform", "translate(" + (180 + dx) + " " + (126 + dy) + ") rotate(" + ang + " 0 -25)"); }
+  function setBall(S, x, y, s, rot) {
+    S.ball.setAttribute("transform", "translate(" + x + " " + y + ") scale(" + s + ")");
+    S.spin.setAttribute("transform", "rotate(" + rot + ")");
+  }
+  function setShadow(S, x, y, s, o) { S.shadow.setAttribute("transform", "translate(" + x + " " + y + ") scale(" + s + ")"); S.shadow.setAttribute("opacity", o); }
+  function setStriker(S, dx, dy) { S.striker.setAttribute("transform", "translate(" + (150 + dx) + " " + (172 + dy) + ")"); }
+  function setNet(S, b) { S.net.setAttribute("transform", "translate(180 96) scale(" + (1 + 0.05 * b) + " " + (1 + 0.035 * b) + ") translate(-180 -96)"); }
+  function resetScene(S) { setKeeper(S, 0, 0, 0); setBall(S, 180, 156, 1, 0); setShadow(S, 180, 163, 1, 0.35); setStriker(S, 0, 0); setNet(S, 0); }
+
+  var easeOut = function (p) { return 1 - Math.pow(1 - p, 3); };
+  var easeIn = function (p) { return p * p; };
+  var linear = function (p) { return p; };
+  // g ties an animation to one game, so a Stop mid-shot can't move the ball after the scene resets.
+  function tween(dur, fn, ease, g) {
+    ease = ease || easeOut;
+    return new Promise(function (res) {
+      if (g !== undefined && g !== game) { res(); return; }
+      if (REDUCED) { fn(1); res(); return; }
+      var t0 = performance.now();
+      function step(now) {
+        if (g !== undefined && g !== game) { res(); return; }
+        var p = Math.min(1, (now - t0) / dur);
+        fn(ease(p));
+        if (p < 1) requestAnimationFrame(step); else res();
+      }
+      requestAnimationFrame(step);
+    });
+  }
+  function wait(ms) { return new Promise(function (r) { setTimeout(r, REDUCED ? Math.min(ms, 300) : ms); }); }
+  // Where the keeper's chest ends up after a dive (rotation is around the keeper's middle).
+  function chestAfter(ang) {
+    var rad = ang * Math.PI / 180, vx = 0, vy = -13;
+    return [vx * Math.cos(rad) - vy * Math.sin(rad), vx * Math.sin(rad) + vy * Math.cos(rad) - 25];
+  }
+  function dive(side) { return side === "L" ? [-46, -4, -75] : side === "R" ? [46, -4, 75] : [0, -12, 0]; }
+
+  function shoot(S, scored) {
+    var g = game;
+    var side = ["L", "R", "C"][rnd(0, 2)];
+    var tx, ty, k;
+    if (scored) {
+      if (side === "L") { tx = rnd(113, 126); ty = rnd(76, 116); }
+      else if (side === "R") { tx = rnd(234, 247); ty = rnd(76, 116); }
+      else { tx = rnd(166, 194); ty = rnd(73, 77); }
+      k = dive(side === "L" ? "R" : side === "R" ? "L" : (Math.random() < 0.5 ? "L" : "R"));
+    } else {
+      k = dive(side);
+      var c = chestAfter(k[2]);
+      tx = 180 + k[0] + c[0]; ty = 126 + k[1] + c[1];
+    }
+    sfx.kick();
+    tween(160, function (p) { var s = Math.sin(p * Math.PI); setStriker(S, 7 * s, -3 * s); }, linear, g);
+    var x0 = 180, y0 = 156, cx = (x0 + tx) / 2, cy = Math.min(ty, y0) - 26;
+    var keeperMove = wait(scored ? 150 : 60).then(function () {
+      return tween(scored ? 340 : 300, function (p) { setKeeper(S, k[0] * p, k[1] * p, k[2] * p); }, easeOut, g);
+    });
+    var flight = wait(80).then(function () {
+      return tween(420, function (p) {
+        var q = 1 - p;
+        var x = q * q * x0 + 2 * q * p * cx + p * p * tx;
+        var y = q * q * y0 + 2 * q * p * cy + p * p * ty;
+        setBall(S, x, y, 1 - 0.42 * p, 620 * p);
+        setShadow(S, x0 + (tx - x0) * p, 163 - 37 * p, 1 - 0.5 * p, 0.35 * (1 - 0.6 * p));
+      }, linear, g);
+    });
+    return Promise.all([keeperMove, flight]).then(function () {
+      if (scored) {
+        return Promise.all([
+          tween(320, function (p) { setNet(S, Math.sin(p * Math.PI)); }, linear, g),
+          tween(320, function (p) { setBall(S, tx, ty + (119 - ty) * p, 0.58, 620 + 90 * p); }, easeIn, g)
+        ]);
+      }
+      var rx = tx + (side === "L" ? 34 : side === "R" ? -34 : rnd(-40, 40)), ry = 146;
+      return tween(340, function (p) {
+        setBall(S, tx + (rx - tx) * p, ty + (ry - ty) * p - 16 * Math.sin(p * Math.PI), 0.58 + 0.3 * p, 620 - 300 * p);
+        setShadow(S, tx + (rx - tx) * p, 126 + 27 * p, 0.5 + 0.3 * p, 0.25);
+      }, easeOut, g);
+    });
+  }
+  function showBanner(S, text, kind) {
+    S.banner.textContent = text;
+    S.banner.className = "banner " + kind;
+    void S.banner.getBoundingClientRect();
+    S.banner.className = "banner " + kind + " show";
+  }
+  function hideBanner(S) { if (S.banner) S.banner.className = "banner"; }
+  function confetti(box, count) {
+    if (REDUCED) return;
+    var kit = getComputedStyle(document.documentElement).getPropertyValue("--kit").trim() || "#1f9e4a";
+    var cols = [kit, "#ffffff", "#ffb81c", kit], h = "";
+    for (var i = 0; i < count; i++) {
+      h += '<i style="background:' + cols[i % cols.length] + ";--dx:" + rnd(-170, 170) + "px;--dy:" + rnd(-110, 90) + "px;--r:" + rnd(-540, 540) + 'deg"></i>';
+    }
+    box.innerHTML = h;
+    setTimeout(function () { box.innerHTML = ""; }, 1200);
+  }
+  function cheer(S) {
+    S.crowd.classList.remove("cheer"); void S.crowd.getBoundingClientRect(); S.crowd.classList.add("cheer");
+    setTimeout(function () { S.crowd.classList.remove("cheer"); }, 1400);
+  }
+
+  var SS = makeScene($("#startPitch"), "s", false);
+  var PS = makeScene($("#playPitch"), "p", true);
+  resetScene(SS); resetScene(PS);
+
+  /* ---------- kits & names ---------- */
+  function applyKit(id) {
+    var k = kitById(id), r = document.documentElement.style;
+    r.setProperty("--kit", k.kit); r.setProperty("--kit-num", k.num); r.setProperty("--kit-shorts", k.shorts);
+  }
+  function previewKit() { applyKit(players === 2 ? kits.p1 : kits.team); }
+  function paintSwatches() {
+    document.querySelectorAll(".swatches").forEach(function (grp) {
+      var who = grp.dataset.who;
+      grp.querySelectorAll(".swatch").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.kit === kits[who])); });
+    });
+  }
+  document.querySelectorAll(".swatches").forEach(function (grp) {
+    grp.innerHTML = KITS.map(function (k) {
+      return '<button class="swatch" type="button" data-kit="' + k.id + '" aria-label="' + k.name + ' kit" style="--sw:' + k.kit + '"></button>';
+    }).join("");
+    grp.addEventListener("click", function (e) {
+      var b = e.target.closest(".swatch"); if (!b) return;
+      var who = grp.dataset.who;
+      kits[who] = b.dataset.kit; store.set(STORE_KEYS[who][1], kits[who]);
+      paintSwatches(); previewKit();
+    });
+  });
+  document.querySelectorAll(".team-input").forEach(function (inp) {
+    var who = inp.dataset.who;
+    inp.value = names[who];
+    inp.addEventListener("input", function () { names[who] = inp.value; store.set(STORE_KEYS[who][0], inp.value); });
+  });
+  var SHIRT = function (k, num) {
+    return '<svg viewBox="0 0 64 64" aria-hidden="true"><path style="fill:' + k.kit + ';stroke:rgba(255,255,255,.35);stroke-width:1.5" d="M24 6L10 12L2 26L11 30L15 23V58H49V23L53 30L62 26L54 12L40 6C38 10 35 12 32 12C29 12 26 10 24 6Z"/>' +
+      '<text class="shirt-num" x="32" y="46" text-anchor="middle" style="fill:' + k.num + '">' + num + "</text></svg>";
+  };
+
+  /* ---------- the big screen ---------- */
+  function buildBoard(digits) {
+    board.className = "board" + (digits === 3 ? " three" : "");
+    var labs = digits === 3 ? ["H", "T", "U"] : ["T", "U"], h = "";
+    labs.forEach(function (l, i) { h += '<span class="lab c' + (i + 2) + '" aria-hidden="true">' + l + "</span>"; });
+    for (var i = 0; i < digits; i++) h += '<span class="dg r2 c' + (i + 2) + ' a" aria-hidden="true"></span>';
+    h += '<span class="op r3 c1" aria-hidden="true">+</span>';
+    for (i = 0; i < digits; i++) h += '<span class="dg r3 c' + (i + 2) + ' b" aria-hidden="true"></span>';
+    h += '<span class="rule"></span>';
+    for (i = 0; i < digits; i++) h += '<button class="box c' + (i + 2) + '" type="button" data-i="' + i + '" aria-label="' + PLACE[labs[i]] + ' answer"></button>';
+    sumgrid.innerHTML = h;
+    boxes = Array.prototype.slice.call(sumgrid.querySelectorAll(".box"));
+  }
+  function fillBoard(s) {
+    var A = digitsOf(s.a, n), B = digitsOf(s.b, n);
+    sumgrid.querySelectorAll(".dg.a").forEach(function (d, i) { d.textContent = A[i]; });
+    sumgrid.querySelectorAll(".dg.b").forEach(function (d, i) { d.textContent = B[i]; });
+    sumgrid.setAttribute("aria-label", s.a + " plus " + s.b);
+  }
+
+  /* ---------- dots ---------- */
+  function dotsHTML(arr, liveIdx) {
+    return arr.map(function (s, i) {
+      var cls = s.done ? " scored" : s.taken ? " missed" : (i === liveIdx ? " now" : "");
+      return '<span class="dot' + cls + '"></span>';
+    }).join("");
+  }
+  function scoredIn(arr) { return arr.filter(function (s) { return s.done; }).length; }
+  function paintDots(el, arr, liveIdx) {
+    el.innerHTML = dotsHTML(arr, liveIdx);
+    el.setAttribute("aria-label", scoredIn(arr) + " of " + arr.length + " penalties scored");
+  }
+
+  /* ---------- screens & settings ---------- */
+  function show(name) {
+    mode = name;
+    Object.keys(screens).forEach(function (k) { screens[k].hidden = k !== name; });
+    $("#wordmark").hidden = name === "start";
+    $("#stopBtn").hidden = !(name === "play" || name === "handover");
+    window.scrollTo(0, 0);
+  }
+  function paintSettings() {
+    document.querySelectorAll("[data-mode]").forEach(function (b) { b.setAttribute("aria-pressed", String(Number(b.dataset.mode) === players)); });
+    document.querySelectorAll("[data-show]").forEach(function (el) { el.hidden = Number(el.dataset.show) !== players; });
+    document.querySelectorAll("[data-set]").forEach(function (b) {
+      var on = b.dataset.set === "digits" ? Number(b.dataset.v) === cfg.digits : (b.dataset.v === "1") === cfg.carry;
+      b.setAttribute("aria-pressed", String(on));
+    });
+    document.querySelectorAll("[data-pset]").forEach(function (b) {
+      var L = levels[b.dataset.who];
+      var on = b.dataset.pset === "digits" ? Number(b.dataset.v) === L.digits : (b.dataset.v === "1") === L.carry;
+      b.setAttribute("aria-pressed", String(on));
+    });
+    var ci = COUNT_OPTS.indexOf(cfg.count), ti = TIME_OPTS.indexOf(cfg.time);
+    $("#countVal").textContent = cfg.count;
+    $("#timeVal").textContent = timeShort(cfg.time);
+    $("#countDown").disabled = ci === 0; $("#countUp").disabled = ci === COUNT_OPTS.length - 1;
+    $("#timeDown").disabled = ti === 0; $("#timeUp").disabled = ti === TIME_OPTS.length - 1;
+    var pens = cfg.count + (cfg.count === 1 ? " penalty" : " penalties");
+    $("#lede").textContent = players === 2
+      ? "Take turns on the same phone, one penalty each, like a real shootout. Each player takes " + pens + " and picks their own sums. Most goals wins, and if it's a tie, the fastest time wins!"
+      : "Get a sum right to score a penalty. Score " + cfg.count + " before full time. You have " + timeWords(cfg.time) + "!";
+    var best = Number(store.get(bestKey())) || 0;
+    $("#bestLine").textContent = best
+      ? "Best time with these settings: " + durWords(best)
+      : "No best time yet. Can you set one?";
+    paintSwatches(); previewKit();
+  }
+
+  /* ---------- clock ---------- */
+  function elapsed() { return clockBase + (clockRunning ? performance.now() - clockStart : 0); }
+  function pauseClock() { if (clockRunning) { clockBase += performance.now() - clockStart; clockRunning = false; } }
+  function resumeClock() { if (!clockRunning) { clockStart = performance.now(); clockRunning = true; } }
+  function frame() {
+    var t;
+    if (duel) {
+      // Two players: a stopwatch that only runs while the sum is being worked out.
+      t = watchText(elapsed());
+      if (clockEl.textContent !== t) clockEl.textContent = t;
+      rafId = requestAnimationFrame(frame);
+      return;
+    }
+    var left = Math.max(0, limitMs - elapsed());
+    t = clockText(left);
+    if (clockEl.textContent !== t) clockEl.textContent = t;
+    clockEl.classList.toggle("low", left <= 10000);
+    if (left <= 0 && !locked) { endGame(false); return; }
+    rafId = requestAnimationFrame(frame);
+  }
+  function startClock(base) {
+    clockBase = base || 0; clockRunning = false; resumeClock();
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(frame);
+  }
+
+  /* ---------- play ---------- */
+  function msg(text, kind) { msgEl.textContent = text; msgEl.className = "msg" + (kind ? " " + kind : ""); }
+  function allFilled() { return entry.every(function (e) { return e !== ""; }); }
+  function renderEntry() {
+    boxes.forEach(function (b, i) {
+      b.textContent = entry[i];
+      b.classList.toggle("active", i === active && !locked);
+      b.classList.toggle("empty", entry[i] === "");
+    });
+    if (duel) shootKey.disabled = locked || !allFilled();
+  }
+  function clearEntry() { entry = []; for (var i = 0; i < n; i++) entry.push(""); active = 0; }
+  function loadSum() {
+    fillBoard(sums[idx]);
+    clearEntry(); locked = false; tries = 0;
+    boxes.forEach(function (b) { b.classList.remove("correct", "wrong"); });
+    countEl.textContent = "Penalty " + (idx + 1) + " of " + sums.length;
+    paintDots(dotsEl, sums, idx);
+    if (idx === 0) msg(duel ? "Fill in the answer, then press Shoot!" : "Get the sum right to shoot!", "");
+    else msg("", "");
+    renderEntry();
+  }
+  // Shrinks a long name until it fits the scoreboard (two lines at most) instead of cutting it off.
+  function fitName(el) {
+    var size = 0.78;
+    el.style.fontSize = "";
+    while ((el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1) && size > 0.5) {
+      size -= 0.04;
+      el.style.fontSize = size.toFixed(2) + "rem";
+    }
+  }
+  function bump(el, v) { el.textContent = v; el.classList.remove("flash"); void el.getBoundingClientRect(); el.classList.add("flash"); }
+  function setPad() {
+    $("#pad").classList.toggle("two", !!duel);
+    shootKey.hidden = !duel;
+  }
+  function paintScoreboard() {
+    var home = $("#sbHome"), away = $("#sbAway");
+    if (duel) {
+      var A = duel.p[0], B = duel.p[1];
+      $("#sbHomeName").textContent = A.name; $("#sbAwayName").textContent = B.name;
+      $("#sbHomeScore").textContent = A.goals; $("#sbAwayScore").textContent = B.goals;
+      home.style.borderLeftColor = kitById(A.kit).kit; away.style.borderRightColor = kitById(B.kit).kit;
+      home.classList.toggle("on", duel.cp === 0); home.classList.toggle("off", duel.cp !== 0);
+      away.classList.toggle("on", duel.cp === 1); away.classList.toggle("off", duel.cp !== 1);
+    } else {
+      $("#sbHomeName").textContent = labelFor("team"); $("#sbAwayName").textContent = "KEEPER";
+      $("#sbHomeScore").textContent = "0"; $("#sbAwayScore").textContent = "0";
+      home.style.borderLeftColor = ""; away.style.borderRightColor = "";
+      home.classList.remove("on", "off"); away.classList.remove("on", "off");
+    }
+  }
+  function goalsEl() { return duel && duel.cp === 1 ? $("#sbAwayScore") : $("#sbHomeScore"); }
+
+  // One player: race the clock.
+  function startGame() {
+    if (players === 2) { startDuel(); return; }
+    duel = null;
+    game++;
+    n = cfg.digits; limitMs = cfg.time * 1000;
+    sums = makeRound(); idx = 0; goals = 0; saves = 0; finishMs = 0;
+    applyKit(kits.team);
+    buildBoard(n); setPad();
+    resetScene(PS); hideBanner(PS);
+    paintScoreboard();
+    show("play");
+    fitName($("#sbHomeName")); fitName($("#sbAwayName"));
+    clockEl.textContent = clockText(limitMs);
+    clockEl.classList.remove("low");
+    loadSum();
+    sfx.kickoff();
+    startClock();
+  }
+
+  // Two players, one penalty each in turn: P1 shoots, passes the phone, P2 shoots, and so on.
+  // Each player has their own clock that only runs while they work out their sum.
+  function startDuel() {
+    game++;
+    cancelAnimationFrame(rafId); pauseClock();
+    function player(who) {
+      var L = levels[who];
+      return { who: who, name: labelFor(who), kit: kits[who], digits: L.digits, carry: L.carry,
+        sums: makeRound(L.digits, L.carry), idx: 0, goals: 0, timeMs: 0 };
+    }
+    duel = { p: [player("p1"), player("p2")], cp: 0 };
+    showHandover();
+  }
+  // The two-row shootout table, as on TV: name, goals, time and a dot per penalty.
+  function rowsHTML(mark, tag) {
+    return duel.p.map(function (P) {
+      var k = kitById(P.kit), on = P === mark;
+      return '<div class="pl-row' + (on ? " winner" : "") + '">' +
+        '<span class="pl-chip" style="background:' + k.kit + '"></span>' +
+        '<span class="pl-name">' + escapeHTML(P.name) +
+          '<span class="pl-lvl">' + levelWords(P) + "</span>" +
+          (on ? '<span class="win-tag">' + tag + "</span>" : "") + "</span>" +
+        '<span class="pl-stat"><b>' + P.goals + "</b>" + (P.goals === 1 ? "goal" : "goals") + "</span>" +
+        '<span class="pl-stat"><b>' + watchText(P.timeMs) + "</b>seconds</span>" +
+        '<div class="dots" role="img" aria-label="' + P.goals + " of " + P.sums.length + ' penalties scored">' +
+          dotsHTML(P.sums, on && tag === "Next up" ? P.idx : -1) + "</div>" +
+      "</div>";
+    }).join("");
+  }
+  function showHandover() {
+    var i = duel.cp, P = duel.p[i], k = kitById(P.kit);
+    applyKit(P.kit);
+    $("#handKit").innerHTML = SHIRT(k, i + 1);
+    $("#handEyebrow").textContent = "Penalty " + (P.idx + 1) + " of " + P.sums.length;
+    $("#handTitle").textContent = P.name + " to shoot!";
+    $("#handLine").textContent = i === 0 && P.idx === 0
+      ? P.name + " goes first. After each shot, pass the phone to the other player."
+      : "Pass the phone to " + P.name + ".";
+    $("#handTable").innerHTML = rowsHTML(P, "Next up");
+    show("handover");
+  }
+  function beginTurn() {
+    game++;
+    var P = duel.p[duel.cp];
+    n = P.digits;
+    sums = P.sums; idx = P.idx; goals = P.goals; saves = 0;
+    applyKit(P.kit);
+    buildBoard(n); setPad();
+    resetScene(PS); hideBanner(PS);
+    paintScoreboard();
+    show("play");
+    fitName($("#sbHomeName")); fitName($("#sbAwayName"));
+    clockEl.classList.remove("low");
+    clockEl.textContent = watchText(P.timeMs);
+    loadSum();
+    sfx.kickoff();
+    startClock(P.timeMs);
+  }
+  function afterKick() {
+    cancelAnimationFrame(rafId); pauseClock();
+    var P = duel.p[duel.cp];
+    P.idx++; P.goals = goals;
+    var A = duel.p[0], B = duel.p[1];
+    if (A.idx >= A.sums.length && B.idx >= B.sums.length) { showResult(); return; }
+    duel.cp = 1 - duel.cp;
+    showHandover();
+  }
+  function showResult() {
+    game++;
+    var A = duel.p[0], B = duel.p[1], winner = null, loser = null, line;
+    var goalWord = function (g) { return g + (g === 1 ? " goal" : " goals"); };
+    if (A.goals !== B.goals) {
+      winner = A.goals > B.goals ? A : B; loser = winner === A ? B : A;
+      line = winner.name + " scored " + goalWord(winner.goals) + " to " + loser.name + "'s " + loser.goals + ".";
+    } else if (tenths(A.timeMs) !== tenths(B.timeMs)) {
+      winner = tenths(A.timeMs) < tenths(B.timeMs) ? A : B; loser = winner === A ? B : A;
+      line = "Both scored " + goalWord(A.goals) + ", so the fastest time wins. " + winner.name + " took " + watchWords(winner.timeMs) +
+        " and " + loser.name + " took " + watchWords(loser.timeMs) + ".";
+    } else {
+      line = "Same goals and exactly the same time. What a match!";
+    }
+    show("result");
+    var icon = $("#resIcon");
+    icon.innerHTML = TROPHY;
+    icon.classList.remove("thump"); void icon.getBoundingClientRect(); icon.classList.add("thump");
+    $("#resTitle").textContent = winner ? winner.name + " wins!" : "It's a draw!";
+    $("#resLine").textContent = line;
+    $("#resTable").innerHTML = rowsHTML(winner, "Winner");
+    applyKit(winner ? winner.kit : kits.p1);
+    confetti($("#resConfetti"), 40);
+    sfx.win();
+  }
+  function escapeHTML(s) { return s.replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+
+  function stopGame() {
+    game++;
+    duel = null;
+    cancelAnimationFrame(rafId); pauseClock();
+    paintSettings();
+    show("start");
+  }
+  function setActive(i) { if (mode !== "play" || locked) return; active = Math.max(0, Math.min(n - 1, i)); renderEntry(); }
+  function press(d) {
+    if (mode !== "play" || locked) return;
+    entry[active] = String(d);
+    var next = -1;
+    for (var k = 1; k < n; k++) { var j = (active + k) % n; if (entry[j] === "") { next = j; break; } }
+    if (next >= 0) { active = next; renderEntry(); }
+    else if (duel) renderEntry();   // two players: wait for the Shoot button
+    else check();
+  }
+  function rubOut() {
+    if (mode !== "play" || locked) return;
+    if (entry[active] !== "") entry[active] = "";
+    else {
+      for (var k = 1; k < n; k++) {
+        var j = (active - k + n) % n;
+        if (entry[j] !== "") { entry[j] = ""; active = j; break; }
+      }
+    }
+    renderEntry();
+  }
+  function shootPressed() { if (duel && mode === "play" && !locked && allFilled()) check(); }
+  var PRAISE = ["What a strike!", "Top corner!", "Back of the net!", "Brilliant!", "Unstoppable!", "Goal!"];
+  function check() {
+    var s = sums[idx], g = game, isDuel = !!duel;
+    var ok = Number(entry.join("")) === s.a + s.b;
+    locked = true; pauseClock(); renderEntry(); msg("", "");
+    boxes.forEach(function (b) { b.classList.add(ok ? "correct" : "wrong"); });
+    if (ok) { s.done = true; if (!isDuel && idx === sums.length - 1) finishMs = elapsed(); }
+    else { saves++; tries++; }
+    if (isDuel) { s.taken = true; duel.p[duel.cp].timeMs = elapsed(); }
+    shoot(PS, ok).then(function () {
+      if (g !== game) return;
+      if (ok) {
+        goals++;
+        bump(goalsEl(), goals);
+        showBanner(PS, "GOAL!", "goal");
+        confetti(PS.confetti, 30); cheer(PS); sfx.goal();
+        msg(PRAISE[rnd(0, PRAISE.length - 1)], "ok");
+      } else {
+        showBanner(PS, "SAVED!", "save");
+        sfx.save();
+        if (isDuel) msg("Saved! The answer was " + (s.a + s.b) + ".", "bad");
+        else {
+          bump($("#sbAwayScore"), saves);
+          msg(tries >= 2 ? "Tip: add the units first. " + (s.a % 10) + " + " + (s.b % 10) + " = ?" : "Try again! You can beat the keeper.", "bad");
+        }
+      }
+      paintDots(dotsEl, sums, -1);
+      return wait(ok ? 1100 : (isDuel ? 1500 : 900));
+    }).then(function () {
+      if (g !== game) return;
+      hideBanner(PS); resetScene(PS);
+      if (isDuel) { afterKick(); return; }
+      if (ok) {
+        if (idx === sums.length - 1) { endGame(true); return; }
+        idx++; loadSum();
+      } else {
+        boxes.forEach(function (b) { b.classList.remove("wrong"); });
+        clearEntry(); locked = false; renderEntry();
+        paintDots(dotsEl, sums, idx);
+      }
+      resumeClock();
+    });
+  }
+
+  /* ---------- end (1 player) ---------- */
+  var TROPHY = '<svg viewBox="0 0 64 64" aria-hidden="true"><path class="cup" d="M18 8h28v12c0 9-6 15-14 15s-14-6-14-15z"/><path class="cup-arm" d="M18 13H10c0 8 4 12 9 12M46 13h8c0 8-4 12-9 12"/><rect class="cup" x="28" y="34" width="8" height="9"/><rect class="cup" x="21" y="43" width="22" height="5" rx="2"/><rect class="cup-base" x="17" y="48" width="30" height="9" rx="2"/><path class="cup-shine" d="M24 13v8"/></svg>';
+  var WHISTLE = '<svg viewBox="0 0 64 64" aria-hidden="true"><path class="wh-cord" d="M16 26C7 19 8 8 19 6"/><circle class="wh" cx="26" cy="38" r="15"/><path class="wh" d="M26 23h30v12H38z"/><circle class="wh-hole" cx="26" cy="38" r="5"/></svg>';
+  var MINI_BALL = '<svg class="mini-ball" viewBox="-9 -9 18 18" aria-label="goal">' + BALL_INNER + "</svg>";
+  function endGame(win) {
+    cancelAnimationFrame(rafId); pauseClock();
+    game++;
+    var total = sums.length, extra = "";
+    show("end");
+    var icon = $("#endIcon"), title = $("#endTitle");
+    icon.innerHTML = win ? TROPHY : WHISTLE;
+    icon.classList.remove("thump"); void icon.getBoundingClientRect(); icon.classList.add("thump");
+    title.textContent = win ? "Champions!" : "Full time!";
+    title.className = win ? "win" : "";
+    $("#fName").textContent = labelFor("team");
+    $("#fGoals").textContent = goals; $("#fSaves").textContent = saves;
+    if (win) {
+      $("#endLine").textContent = total === 1
+        ? "You scored your penalty in " + durWords(finishMs) + "."
+        : "You scored all " + total + " penalties in " + durWords(finishMs) + ".";
+      var key = bestKey(), prev = Number(store.get(key)) || 0;
+      var newBest = !prev || finishMs < prev;
+      if (newBest) store.set(key, String(Math.round(finishMs)));
+      if (newBest && saves === 0) extra = "New best time, and the keeper didn't save a single one!";
+      else if (newBest) extra = "New best time!";
+      else if (saves === 0) extra = "The keeper didn't save a single one!";
+      confetti($("#endConfetti"), 40);
+      sfx.win();
+    } else {
+      $("#endLine").textContent = (goals === total - 1 && total > 1 ? "So close! " : "") +
+        "You scored " + goals + " of " + total + (total === 1 ? " penalty" : " penalties") + ". Have another go!";
+      sfx.fulltime();
+    }
+    $("#endExtra").textContent = extra;
+    $("#endExtra").hidden = !extra;
+    paintDots($("#endDots"), sums, -1);
+    $("#results").innerHTML = sums.map(function (s, i) {
+      return '<li class="' + (s.done ? "" : "missed") + '"><span><span class="pen">' + (i + 1) + "</span>" +
+        s.a + " + " + s.b + " = " + (s.done ? s.a + s.b : "?") + "</span>" +
+        (s.done ? MINI_BALL : '<span class="miss-tag">Not taken</span>') + "</li>";
+    }).join("");
+  }
+
+  /* ---------- wiring ---------- */
+  paintSound(); paintSettings();
+
+  document.querySelectorAll("[data-mode]").forEach(function (b) {
+    b.addEventListener("click", function () { players = Number(b.dataset.mode); store.set("ps-mode", String(players)); paintSettings(); });
+  });
+  document.querySelectorAll("[data-set]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      if (b.dataset.set === "digits") cfg.digits = Number(b.dataset.v);
+      else cfg.carry = b.dataset.v === "1";
+      saveCfg(); paintSettings();
+    });
+  });
+  document.querySelectorAll("[data-pset]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var L = levels[b.dataset.who];
+      if (b.dataset.pset === "digits") L.digits = Number(b.dataset.v);
+      else L.carry = b.dataset.v === "1";
+      saveLevels(); paintSettings();
+    });
+  });
+  document.querySelectorAll("[data-step]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var key = b.dataset.step, opts = key === "count" ? COUNT_OPTS : TIME_OPTS;
+      var i = Math.max(0, Math.min(opts.length - 1, opts.indexOf(cfg[key]) + Number(b.dataset.dir)));
+      cfg[key] = opts[i]; saveCfg(); paintSettings();
+    });
+  });
+  $("#goBtn").addEventListener("click", startGame);
+  $("#againBtn").addEventListener("click", startGame);
+  $("#readyBtn").addEventListener("click", beginTurn);
+  $("#rematchBtn").addEventListener("click", startDuel);
+  $("#levelBtn").addEventListener("click", function () { paintSettings(); show("start"); });
+  $("#resSettingsBtn").addEventListener("click", function () { duel = null; paintSettings(); show("start"); });
+  $("#stopBtn").addEventListener("click", stopGame);
+  $("#soundBtn").addEventListener("click", function () {
+    soundOn = !soundOn; store.set("ps-sound", soundOn ? "on" : "off"); paintSound();
+  });
+  sumgrid.addEventListener("click", function (e) {
+    var b = e.target.closest(".box");
+    if (b && b.dataset.i) setActive(Number(b.dataset.i));
+  });
+  $("#pad").addEventListener("click", function (e) {
+    var k = e.target.closest(".key"); if (!k) return;
+    if (k.id === "delKey") rubOut();
+    else if (k.id === "shootKey") shootPressed();
+    else press(Number(k.dataset.d));
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target instanceof HTMLInputElement) { if (e.key === "Enter") e.target.blur(); return; }
+    if (mode === "play") {
+      if (/^[0-9]$/.test(e.key)) { press(Number(e.key)); e.preventDefault(); }
+      else if (e.key === "Backspace" || e.key === "Delete") { rubOut(); e.preventDefault(); }
+      else if (e.key === "ArrowLeft") setActive(active - 1);
+      else if (e.key === "ArrowRight") setActive(active + 1);
+      else if (e.key === "Enter") { shootPressed(); e.preventDefault(); }
+    } else if (e.key === "Enter" && !(e.target instanceof HTMLButtonElement)) {
+      if (mode === "handover") beginTurn();
+      else if (mode === "result") startDuel();
+      else startGame();
+    }
+  });
+})();
+</script>
+</body>
+</html>

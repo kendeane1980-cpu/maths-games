@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en-IE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Maths Games</title>
+<meta name="description" content="Timed column-addition games for children: Beat the Pencil and Penalty Shootout.">
+<meta name="theme-color" content="#eef3fb">
+<link rel="icon" href="icons/ball-192.png">
+<link rel="apple-touch-icon" href="icons/ball-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Andika:wght@400;700&family=Bungee&family=Grandstander:wght@700;800&family=Lexend:wght@400;600;700&display=swap">
+<style>
+/* Layout: a toy shelf. Two big tiles, each dressed as its own game: squared copybook paper and a floodlit pitch. */
+:root {
+  --bg: #eef3fb;
+  --ink: #1b2747;
+  --ink-soft: #5d6d91;
+  --grid: #cddbf1;
+  --sheet: #ffffff;
+  --margin: #e4493e;
+  --pencil: #f7c531;
+  --night: #0a1430;
+  --night-2: #16295c;
+  --amber: #ffb81c;
+  --pitch-text: #f3f6ff;
+  --pitch-soft: #a9b6d8;
+  --edge: #bfcde6;
+  --shadow: rgba(27, 39, 71, 0.18);
+  --font-display: "Grandstander", "Chalkboard SE", "Comic Sans MS", system-ui, sans-serif;
+  --font-body: "Lexend", "Trebuchet MS", system-ui, sans-serif;
+  --font-copy: "Andika", "Trebuchet MS", system-ui, sans-serif;
+  --font-stadium: "Bungee", "Impact", "Arial Black", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0f1930; --ink: #eef3ff; --ink-soft: #a5b4d4; --edge: #324a7c; --shadow: rgba(0, 0, 0, 0.45); color-scheme: dark; }
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body {
+  margin: 0; min-height: 100vh; background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.45;
+}
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+.wrap {
+  max-width: 760px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 32px;
+  display: flex; flex-direction: column; gap: 22px;
+}
+header { display: flex; flex-direction: column; gap: 6px; }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: clamp(2.3rem, 9vw, 3.4rem); line-height: 1; letter-spacing: -0.01em; }
+.lede { margin: 0; color: var(--ink-soft); font-size: 1.1rem; max-width: 36ch; }
+.shelf { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.tile {
+  position: relative; display: flex; flex-direction: column; gap: 10px;
+  min-height: 250px; padding: 22px 20px 20px; border-radius: 18px;
+  text-decoration: none; overflow: hidden;
+  box-shadow: 0 14px 30px -18px var(--shadow);
+  transition: transform 0.15s ease;
+}
+.tile:hover { transform: translateY(-3px); }
+.tile h2 { margin: 0; line-height: 1; text-wrap: balance; }
+.tile p { margin: 0; max-width: 30ch; }
+.tags { margin-top: auto; display: flex; flex-wrap: wrap; gap: 6px; padding: 0; list-style: none; }
+.tags li { padding: 3px 10px; border-radius: 999px; font-size: 0.85rem; font-weight: 600; }
+.play { font-weight: 700; display: inline-flex; align-items: center; gap: 6px; }
+
+/* Beat the Pencil: squared copybook paper with a red margin */
+.pencil-tile {
+  background-color: var(--sheet); color: #1b2747;
+  background-image: linear-gradient(#cddbf1 1px, transparent 1px), linear-gradient(90deg, #cddbf1 1px, transparent 1px);
+  background-size: 22px 22px;
+  border: 2px solid #bfcde6; padding-left: 44px;
+  font-family: var(--font-copy);
+}
+.pencil-tile::before { content: ""; position: absolute; top: 0; bottom: 0; left: 26px; width: 2px; background: var(--margin); opacity: 0.8; }
+.pencil-tile h2 { font-family: var(--font-display); font-weight: 800; font-size: 2rem; }
+.pencil-tile .tags li { background: #fde27b; color: #1b2747; }
+.pencil-tile .play { font-family: var(--font-display); color: #1b2747; }
+.mini-pencil { display: flex; height: 16px; width: 70%; max-width: 220px; }
+.mini-pencil .tip { width: 20px; background: linear-gradient(to right, #3a3f4b 0 32%, #efc287 32%); clip-path: polygon(0 50%, 100% 0, 100% 100%); }
+.mini-pencil .body { flex: 1; background: linear-gradient(#fde27b 0 30%, #f7c531 30% 68%, #dca314 68%); }
+.mini-pencil .ferrule { width: 8px; background: #b9c0cc; }
+.mini-pencil .eraser { width: 10px; background: #ef8a9b; border-radius: 0 5px 5px 0; }
+
+/* Penalty Shootout: floodlit night with a strip of pitch */
+.pitch-tile {
+  background:
+    radial-gradient(60% 45% at 0% 0%, rgba(255, 240, 200, 0.18), transparent 70%),
+    radial-gradient(60% 45% at 100% 0%, rgba(255, 240, 200, 0.18), transparent 70%),
+    linear-gradient(var(--night-2), var(--night));
+  color: var(--pitch-text); border: 2px solid #2a467d; padding-bottom: 56px;
+}
+.pitch-tile::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 40px;
+  background: repeating-linear-gradient(90deg, #2f8d48 0 28px, #287c3e 28px 56px);
+  border-top: 2px solid #eef5ec;
+}
+.pitch-tile .eyebrow { margin: 0; font-family: var(--font-stadium); font-size: 0.75rem; letter-spacing: 0.12em; color: var(--amber); }
+.pitch-tile h2 { font-family: var(--font-stadium); font-weight: 400; font-size: 1.8rem; text-shadow: 0 3px 0 #000; }
+.pitch-tile p { color: var(--pitch-text); }
+.pitch-tile .tags li { background: rgba(255, 184, 28, 0.16); color: var(--amber); border: 1px solid rgba(255, 184, 28, 0.4); }
+.pitch-tile .play { color: var(--amber); font-family: var(--font-stadium); font-weight: 400; letter-spacing: 0.03em; }
+
+.howto { border-top: 2px dashed var(--edge); padding-top: 18px; display: grid; gap: 6px; color: var(--ink-soft); }
+.howto h3 { margin: 0; color: var(--ink); font-size: 1rem; }
+.howto p { margin: 0; max-width: 62ch; }
+@media (prefers-reduced-motion: reduce) { .tile { transition: none; } .tile:hover { transform: none; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>Maths Games</h1>
+    <p class="lede">Column addition against the clock. Pick a game.</p>
+  </header>
+
+  <div class="shelf">
+    <a class="tile pencil-tile" href="beat-the-pencil.html">
+      <h2>Beat the Pencil</h2>
+      <div class="mini-pencil" aria-hidden="true"><span class="tip"></span><span class="body"></span><span class="ferrule"></span><span class="eraser"></span></div>
+      <p>Finish your sums before the pencil gets used up.</p>
+      <ul class="tags"><li>1 player</li><li>2 or 3 digits</li><li>Carrying</li></ul>
+      <span class="play">Play &rarr;</span>
+    </a>
+    <a class="tile pitch-tile" href="penalty-shootout.html">
+      <p class="eyebrow">The Maths Cup</p>
+      <h2>Penalty Shootout</h2>
+      <p>Every right answer is a goal. Race the clock, or take turns with a friend.</p>
+      <ul class="tags"><li>1 or 2 players</li><li>Own level each</li></ul>
+      <span class="play">Kick off &rarr;</span>
+    </a>
+  </div>
+
+  <section class="howto">
+    <h3>Keep it on your phone like an app</h3>
+    <p>On an iPhone, open a game in Safari, tap Share, then Add to Home Screen. On Android, open it in Chrome, tap the &#8942; menu, then Add to Home screen.</p>
+    <p>Best times, names and settings are saved on each phone. Nothing is sent anywhere.</p>
+  </section>
+</main>
+</body>
+</html>
