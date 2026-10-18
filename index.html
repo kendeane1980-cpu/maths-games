@@ -337,6 +337,27 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
 .pl-stat b { display: block; color: var(--amber); font-size: 1.5rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
 .pl-row .dots { grid-column: 1 / -1; }
 
+/* Two phones */
+h2.left { text-align: left; }
+.on-you { margin: 0; color: var(--text-soft); font-size: 0.95rem; }
+.on-you b { color: var(--text); }
+.on-card { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
+.on-h { margin: 0; font-weight: 800; font-size: 1.1rem; }
+.on-sub { margin: 0; color: var(--text-soft); }
+.join-row { display: flex; gap: 10px; }
+.join-row .ghost { flex: none; padding: 0 22px; }
+.code-input {
+  flex: 1; min-width: 0; height: 54px; padding: 0 14px; border-radius: 14px;
+  border: 2px solid var(--panel-edge); background: var(--screen); color: var(--amber);
+  font-family: var(--font-display); font-size: 1.6rem; letter-spacing: 0.3em; text-transform: uppercase;
+}
+.code-input::placeholder { color: var(--text-soft); opacity: 0.5; }
+.code-card { align-items: center; text-align: center; }
+.code-big { margin: 0; font-family: var(--font-display); font-size: clamp(3rem, 18vw, 4.4rem); line-height: 1; letter-spacing: 0.12em; color: var(--amber); text-shadow: 0 4px 0 var(--amber-deep); }
+.code-card .ghost { align-self: stretch; }
+.wait-dots::after { content: ""; animation: dots 1.4s steps(4) infinite; }
+
+@keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
 @keyframes pulse { 50% { transform: scale(1.1); } }
 @keyframes blink { 50% { opacity: 0; } }
 @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
@@ -378,6 +399,13 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
           <button type="button" id="mode2" data-mode="2">2 players</button>
         </div>
       </div>
+      <div class="set-row" id="whereRow" hidden>
+        <span class="set-label" id="lblWhere">Play on</span>
+        <div class="seg" role="group" aria-labelledby="lblWhere">
+          <button type="button" id="where1" data-where="one">One phone</button>
+          <button type="button" id="where2" data-where="two">Two phones</button>
+        </div>
+      </div>
       <div class="set-row" data-show="1">
         <label class="set-label" for="teamName">Your team</label>
         <input class="team-input" id="teamName" data-who="team" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="HOME">
@@ -387,7 +415,7 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
         <div class="swatches" data-who="team" role="group" aria-labelledby="lblKit"></div>
       </div>
       <div class="set-row" data-show="2">
-        <label class="set-label" for="p1Name">Player 1</label>
+        <label class="set-label" for="p1Name" id="lblP1">Player 1</label>
         <input class="team-input" id="p1Name" data-who="p1" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="PLAYER 1">
       </div>
       <div class="set-row sub" data-show="2">
@@ -408,22 +436,22 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
           <button type="button" id="p1c1" data-pset="carry" data-who="p1" data-v="1">Carrying</button>
         </div>
       </div>
-      <div class="set-row" data-show="2">
+      <div class="set-row" data-show="2" data-p2>
         <label class="set-label" for="p2Name">Player 2</label>
         <input class="team-input" id="p2Name" data-who="p2" type="text" maxlength="20" autocomplete="off" spellcheck="false" placeholder="PLAYER 2">
       </div>
-      <div class="set-row sub" data-show="2">
+      <div class="set-row sub" data-show="2" data-p2>
         <span class="set-label soft" id="lblKit2">Kit</span>
         <div class="swatches" data-who="p2" role="group" aria-labelledby="lblKit2"></div>
       </div>
-      <div class="set-row sub" data-show="2">
+      <div class="set-row sub" data-show="2" data-p2>
         <span class="set-label soft" id="lblDigits2">Numbers</span>
         <div class="seg" role="group" aria-labelledby="lblDigits2">
           <button type="button" id="p2d2" data-pset="digits" data-who="p2" data-v="2">2 digits</button>
           <button type="button" id="p2d3" data-pset="digits" data-who="p2" data-v="3">3 digits</button>
         </div>
       </div>
-      <div class="set-row sub" data-show="2">
+      <div class="set-row sub" data-show="2" data-p2>
         <span class="set-label soft" id="lblCarry2">Sums</span>
         <div class="seg" role="group" aria-labelledby="lblCarry2">
           <button type="button" id="p2c0" data-pset="carry" data-who="p2" data-v="0">No carrying</button>
@@ -468,6 +496,42 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
     <div class="start-foot">
       <p class="best" id="bestLine" data-show="1">No best time yet. Can you set one?</p>
       <button class="go" id="goBtn" type="button">Kick off!</button>
+    </div>
+  </section>
+
+  <!-- TWO PHONES: create or join a match -->
+  <section class="screen" id="online" hidden>
+    <div class="hero">
+      <p class="eyebrow">Two phones</p>
+      <h2 class="left">Play on two phones</h2>
+      <p class="lede">One of you creates a match. The other joins it with the code.</p>
+      <p class="on-you" id="onYou"></p>
+    </div>
+    <div class="card on-card" id="onRejoin" hidden>
+      <p class="on-sub" id="onRejoinLine">You're still in match ABCD.</p>
+      <button class="go" id="rejoinBtn" type="button">Rejoin</button>
+    </div>
+    <div class="card on-card" id="onCreate">
+      <p class="on-h">Start a match</p>
+      <p class="on-sub">You'll get a 4-letter code to give the other player.</p>
+      <button class="go" id="createBtn" type="button">Create match</button>
+    </div>
+    <div class="card on-card" id="onJoin">
+      <label class="on-h" for="joinCode">Join a match</label>
+      <div class="join-row">
+        <input class="code-input" id="joinCode" type="text" maxlength="4" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="CODE">
+        <button class="ghost" id="joinBtn" type="button">Join</button>
+      </div>
+    </div>
+    <div class="card on-card code-card" id="onCode" hidden>
+      <p class="on-sub">Your match code</p>
+      <p class="code-big" id="codeBig">ABCD</p>
+      <p class="on-sub" id="onWait">Waiting for the other player to join…</p>
+      <button class="ghost" id="shareBtn" type="button">Share link</button>
+    </div>
+    <p class="msg" id="onMsg" aria-live="polite"></p>
+    <div class="start-foot">
+      <button class="ghost" id="onBackBtn" type="button">Back</button>
     </div>
   </section>
 
@@ -554,6 +618,7 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
   </section>
 </div>
 
+<script src="firebase-config.js"></script>
 <script>
 (function () {
   "use strict";
@@ -621,7 +686,13 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
   var boxes = [];
   var duel = null; // two-player match: { p: [player, player], cp: index of the player taking their turn }
 
-  var screens = { start: $("#start"), handover: $("#handover"), play: $("#play"), end: $("#end"), result: $("#result") };
+  // Two phones: only offered when the page has an online database to talk to (the GitHub version).
+  var ONLINE_OK = !!(window.__TEST_NET__ || (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.databaseURL));
+  var where = store.get("ps-where") === "two" ? "two" : "one";
+  function twoPhones() { return ONLINE_OK && players === 2 && where === "two"; }
+  var on = null; // the online match this phone is in: { code, me, match, busy, seenOpp, kickBase }
+
+  var screens = { start: $("#start"), online: $("#online"), handover: $("#handover"), play: $("#play"), end: $("#end"), result: $("#result") };
   var clockEl = $("#clock"), msgEl = $("#msg"), countEl = $("#count");
   var board = $("#board"), sumgrid = $("#sumgrid"), dotsEl = $("#dots"), shootKey = $("#shootKey");
 
@@ -688,7 +759,8 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
       whistle(0, 0.25); whistle(0.32, 0.25); whistle(0.64, 0.6); crowd(0.2, 2.4, 0.3, 1000);
       [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.9 + i * 0.12, 0.32, 0.15); });
     },
-    fulltime: function () { whistle(0, 0.25); whistle(0.32, 0.25); whistle(0.64, 0.75); }
+    fulltime: function () { whistle(0, 0.25); whistle(0.32, 0.25); whistle(0.64, 0.75); },
+    turn: function () { tone(880, 0, 0.14, 0.12); tone(1320, 0.14, 0.26, 0.12); }
   };
   var ICON_ON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
   var ICON_OFF = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
@@ -1020,6 +1092,10 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
   function paintSettings() {
     document.querySelectorAll("[data-mode]").forEach(function (b) { b.setAttribute("aria-pressed", String(Number(b.dataset.mode) === players)); });
     document.querySelectorAll("[data-show]").forEach(function (el) { el.hidden = Number(el.dataset.show) !== players; });
+    $("#whereRow").hidden = !(ONLINE_OK && players === 2);
+    document.querySelectorAll("[data-where]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.where === where)); });
+    document.querySelectorAll("[data-p2]").forEach(function (el) { el.hidden = players !== 2 || twoPhones(); });
+    $("#lblP1").textContent = twoPhones() ? "You" : "Player 1";
     document.querySelectorAll("[data-set]").forEach(function (b) {
       var on = b.dataset.set === "digits" ? Number(b.dataset.v) === cfg.digits : (b.dataset.v === "1") === cfg.carry;
       b.setAttribute("aria-pressed", String(on));
@@ -1035,7 +1111,9 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
     $("#countDown").disabled = ci === 0; $("#countUp").disabled = ci === COUNT_OPTS.length - 1;
     $("#timeDown").disabled = ti === 0; $("#timeUp").disabled = ti === TIME_OPTS.length - 1;
     var pens = cfg.count + (cfg.count === 1 ? " penalty" : " penalties");
-    $("#lede").textContent = players === 2
+    $("#lede").textContent = twoPhones()
+      ? "Play against someone on another phone. One of you creates a match and the other joins with its code. You take turns, one penalty each, and whoever creates the match picks how many. Most goals wins, and if it's a tie, the fastest time wins!"
+      : players === 2
       ? "Take turns on the same phone, one penalty each, like a real shootout. Each player takes " + pens + " and picks their own sums. Most goals wins, and if it's a tie, the fastest time wins!"
       : "Get a sum right to score a penalty. Score " + cfg.count + " before full time. You have " + timeWords(cfg.time) + "!";
     var best = Number(store.get(bestKey())) || 0;
@@ -1104,6 +1182,7 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
   }
   function bump(el, v) { el.textContent = v; el.classList.remove("flash"); void el.getBoundingClientRect(); el.classList.add("flash"); }
   function setPad() {
+    $("#pad").hidden = false;
     $("#pad").classList.toggle("two", !!duel);
     shootKey.hidden = !duel;
   }
@@ -1127,7 +1206,7 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
 
   // One player: race the clock.
   function startGame() {
-    if (players === 2) { startDuel(); return; }
+    if (players === 2) { if (twoPhones()) openOnline(); else startDuel(); return; }
     duel = null;
     game++;
     n = cfg.digits; limitMs = cfg.time * 1000;
@@ -1170,7 +1249,7 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
         '<span class="pl-stat"><b>' + P.goals + "</b>" + (P.goals === 1 ? "goal" : "goals") + "</span>" +
         '<span class="pl-stat"><b>' + watchText(P.timeMs) + "</b>seconds</span>" +
         '<div class="dots" role="img" aria-label="' + P.goals + " of " + P.sums.length + ' penalties scored">' +
-          dotsHTML(P.sums, on && tag === "Next up" ? P.idx : -1) + "</div>" +
+          dotsHTML(P.sums, on && tag !== "Winner" ? P.idx : -1) + "</div>" +
       "</div>";
     }).join("");
   }
@@ -1180,13 +1259,17 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
     $("#handKit").innerHTML = SHIRT(k, i + 1);
     $("#handEyebrow").textContent = "Penalty " + (P.idx + 1) + " of " + P.sums.length;
     $("#handTitle").textContent = P.name + " to shoot!";
+    $("#handTitle").classList.remove("wait-dots");
     $("#handLine").textContent = i === 0 && P.idx === 0
       ? P.name + " goes first. After each shot, pass the phone to the other player."
       : "Pass the phone to " + P.name + ".";
     $("#handTable").innerHTML = rowsHTML(P, "Next up");
+    $("#handRules").textContent = "Your clock runs while you work out the sum. It stops when you press Shoot.";
+    $("#readyBtn").hidden = false;
     show("handover");
   }
   function beginTurn() {
+    if (duel && duel.online) { if (!onlinePrepareKick()) return; }
     game++;
     var P = duel.p[duel.cp];
     n = P.digits;
@@ -1205,6 +1288,7 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
   }
   function afterKick() {
     cancelAnimationFrame(rafId); pauseClock();
+    if (duel.online) { if (on) { on.busy = false; renderOnline(); } return; }
     var P = duel.p[duel.cp];
     P.idx++; P.goals = goals;
     var A = duel.p[0], B = duel.p[1];
@@ -1241,6 +1325,7 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
 
   function stopGame() {
     game++;
+    leaveOnline(false);
     duel = null;
     cancelAnimationFrame(rafId); pauseClock();
     paintSettings();
@@ -1277,6 +1362,7 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
     if (ok) { s.done = true; if (!isDuel && idx === sums.length - 1) finishMs = elapsed(); }
     else { saves++; tries++; }
     if (isDuel) { s.taken = true; duel.p[duel.cp].timeMs = elapsed(); }
+    if (isDuel && duel.online) postKick(s, Number(entry.join("")), ok);
     shoot(PS, ok).then(function () {
       if (g !== game) return;
       if (ok) {
@@ -1310,6 +1396,358 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
       }
       resumeClock();
     });
+  }
+
+  /* ---------- two phones (online) ---------- */
+  // Each phone signs in anonymously and watches one match record, shared through an online database.
+  // Turns alternate: the phone whose turn it is gets a fresh sum, times its own player, and posts the kick.
+  // The other phone shows a waiting screen and replays each kick as it arrives.
+  var CODE_LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+  var Net = null, onlineBusy = false;
+  function getNet() {
+    if (!Net) Net = window.__TEST_NET__ || firebaseNet(window.FIREBASE_CONFIG);
+    return Net;
+  }
+  // Firebase Realtime Database with anonymous sign-in, loaded only when two phones are used.
+  function firebaseNet(config) {
+    var base = "https://www.gstatic.com/firebasejs/10.12.2/";
+    var api = null, db = null, ready = null;
+    function r(code, path) { return api.ref(db, "matches/" + code + (path ? "/" + path : "")); }
+    return {
+      init: function () {
+        if (!ready) {
+          ready = Promise.all([import(base + "firebase-app.js"), import(base + "firebase-auth.js"), import(base + "firebase-database.js")])
+            .then(function (m) {
+              var app = m[0].initializeApp(config);
+              api = m[2]; db = api.getDatabase(app);
+              return m[1].signInAnonymously(m[1].getAuth(app));
+            })
+            .then(function (cred) { return cred.user.uid; })
+            .catch(function (e) { ready = null; throw e; });
+        }
+        return ready;
+      },
+      get: function (code) { return api.get(r(code)).then(function (s) { return s.exists() ? s.val() : null; }); },
+      create: function (code, data) { data.createdAt = api.serverTimestamp(); return api.set(r(code), data); },
+      update: function (code, patch) { return api.update(r(code), patch); },
+      remove: function (code) { return api.remove(r(code)); },
+      watch: function (code, cb, onErr) { return api.onValue(r(code), function (s) { cb(s.exists() ? s.val() : null); }, onErr); },
+      // Marks this player online, and offline again if the phone drops off; re-arms after every reconnect.
+      presence: function (code, i) {
+        var p = r(code, "p/" + i + "/online");
+        var off = api.onValue(api.ref(db, ".info/connected"), function (s) {
+          if (s.val() === true) api.onDisconnect(p).set(false).then(function () { return api.set(p, true); }).catch(function () {});
+        });
+        return function () { off(); api.onDisconnect(p).cancel().catch(function () {}); };
+      },
+      // Clears matches more than a day old (the database rules let anyone delete only those).
+      cleanup: function () {
+        var q = api.query(api.ref(db, "matches"), api.orderByChild("createdAt"),
+          api.endAt(Date.now() - 86400000 - 3600000), api.limitToFirst(20));
+        return api.get(q).then(function (s) {
+          var jobs = [];
+          s.forEach(function (c) { jobs.push(api.remove(c.ref)); });
+          return Promise.all(jobs);
+        }).catch(function () {});
+      }
+    };
+  }
+  function netError(e) {
+    var c = String((e && (e.code || e.message)) || e);
+    if (/operation-not-allowed|admin-restricted/i.test(c)) return "Two phones isn't switched on yet: anonymous sign-in is off in Firebase.";
+    if (/permission[_ -]?denied/i.test(c)) return "The match database said no. Check the Firebase rules are published.";
+    if (/network|offline|fetch|unavailable|import/i.test(c)) return "Couldn't reach the internet. Check the connection and try again.";
+    return "Something went wrong (" + c + "). Try again.";
+  }
+  function makeCode() { var s = ""; for (var i = 0; i < 4; i++) s += CODE_LETTERS[rnd(0, CODE_LETTERS.length - 1)]; return s; }
+  function myInfo() { var L = levels.p1; return { name: labelFor("p1"), kit: kits.p1, digits: L.digits, carry: L.carry }; }
+  function onMsg(t, kind) { var el = $("#onMsg"); el.textContent = t; el.className = "msg" + (kind ? " " + kind : ""); }
+  function savedMatch() {
+    try { var o = JSON.parse(store.get("ps-online") || "null"); return o && /^[A-Z]{4}$/.test(o.code) ? o : null; }
+    catch (e) { return null; }
+  }
+  function kickList(m, i) {
+    var k = m && m.kicks && m.kicks[i];
+    if (!k) return [];
+    if (Array.isArray(k)) return k.filter(Boolean);
+    return Object.keys(k).sort(function (a, b) { return a - b; }).map(function (x) { return k[x]; });
+  }
+  // Applies a multi-path update ({"kicks/0/2": {...}, turn: 1}) to the local copy, as the database will.
+  function applyPatch(obj, patch) {
+    Object.keys(patch).forEach(function (path) {
+      var parts = path.split("/"), o = obj;
+      for (var i = 0; i < parts.length - 1; i++) {
+        if (o[parts[i]] == null || typeof o[parts[i]] !== "object") o[parts[i]] = {};
+        o = o[parts[i]];
+      }
+      var last = parts[parts.length - 1];
+      if (patch[path] === null) delete o[last]; else o[last] = patch[path];
+    });
+  }
+
+  function paintOnlineCards(code) {
+    $("#onCode").hidden = !code;
+    $("#onCreate").hidden = !!code;
+    $("#onJoin").hidden = !!code;
+    var sv = savedMatch();
+    $("#onRejoin").hidden = !!code || !sv;
+    if (sv) $("#onRejoinLine").textContent = "You're still in match " + sv.code + ".";
+    if (code) {
+      $("#codeBig").textContent = code;
+      $("#shareBtn").textContent = navigator.share ? "Share link" : "Copy link";
+    }
+  }
+  function openOnline() {
+    game++; duel = null; leaveOnline(false);
+    var you = $("#onYou"), b = document.createElement("b");
+    b.textContent = labelFor("p1");
+    you.textContent = "";
+    you.append("You're playing as ", b, ", " + levelWords(levels.p1) + ".");
+    paintOnlineCards(null);
+    onMsg("", "");
+    applyKit(kits.p1);
+    show("online");
+    getNet().init().catch(function (e) { onMsg(netError(e), "bad"); });
+  }
+  function createMatch() {
+    if (onlineBusy) return;
+    onlineBusy = true;
+    onMsg("Creating a match…", "");
+    var net = getNet(), tries = 0;
+    function attempt(uid) {
+      var code = makeCode();
+      return net.create(code, { host: uid, count: cfg.count, state: "lobby", p: { 0: myInfo() } })
+        .then(function () { return code; }, function (e) { if (++tries < 4) return attempt(uid); throw e; });
+    }
+    net.init()
+      .then(function (uid) { if (net.cleanup) net.cleanup(); return attempt(uid); })
+      .then(function (code) { onlineBusy = false; onMsg("", ""); paintOnlineCards(code); enterMatch(code, 0); })
+      .catch(function (e) { onlineBusy = false; onMsg(netError(e), "bad"); });
+  }
+  function joinMatch(raw) {
+    var code = String(raw || "").toUpperCase().replace(/[^A-Z]/g, "");
+    if (!/^[A-Z]{4}$/.test(code)) { onMsg("Type the 4-letter code from the other phone.", "bad"); return; }
+    if (onlineBusy) return;
+    onlineBusy = true;
+    onMsg("Joining " + code + "…", "");
+    var net = getNet(), uid;
+    net.init()
+      .then(function (u) { uid = u; return net.get(code); })
+      .then(function (m) {
+        if (!m) throw { friendly: "There's no match with the code " + code + ". Check the letters with the other player." };
+        if (m.host === uid) return 0;
+        if (m.guest === uid) return 1;
+        if (m.guest) throw { friendly: "Match " + code + " already has two players." };
+        return net.update(code, { guest: uid, "p/1": myInfo(), state: "playing", turn: 0 }).then(function () { return 1; });
+      })
+      .then(function (me) { onlineBusy = false; onMsg("", ""); enterMatch(code, me); })
+      .catch(function (e) {
+        onlineBusy = false;
+        if (e && e.friendly) {
+          var sv = savedMatch();
+          if (sv && sv.code === code) { store.set("ps-online", ""); $("#onRejoin").hidden = true; }
+          onMsg(e.friendly, "bad");
+        } else onMsg(netError(e), "bad");
+      });
+  }
+  function enterMatch(code, me) {
+    leaveOnline(false);
+    var mine = { code: code, me: me, match: null, busy: false, seenOpp: null, seenAny: false, kickBase: 0, lastScreen: "" };
+    on = mine;
+    store.set("ps-online", JSON.stringify({ code: code, me: me }));
+    var net = getNet();
+    if (net.presence) mine.presOff = net.presence(code, me);
+    mine.unsub = net.watch(code, function (m) {
+      if (on !== mine) return;
+      mine.match = m;
+      if (!mine.busy) renderOnline();
+    }, function (e) { if (on === mine) { onMsg(netError(e), "bad"); msg(netError(e), "bad"); } });
+  }
+  function leaveOnline(forget) {
+    if (on) {
+      try { if (on.unsub) on.unsub(); } catch (e) {}
+      try { if (on.presOff) on.presOff(); } catch (e) {}
+    }
+    on = null;
+    if (forget) store.set("ps-online", "");
+  }
+  function onlineBack() {
+    if (on && on.match && on.match.state === "lobby" && on.me === 0) {
+      getNet().remove(on.code).catch(function () {});
+      leaveOnline(true);
+    } else leaveOnline(false);
+    paintSettings(); show("start");
+  }
+  function shareMatch() {
+    if (!on) return;
+    var url = location.href.split("#")[0] + "#join-" + on.code;
+    var text = "Join my Penalty Shootout match. The code is " + on.code + ".";
+    var btn = $("#shareBtn");
+    if (navigator.share) { navigator.share({ title: "Penalty Shootout", text: text, url: url }).catch(function () {}); return; }
+    if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { btn.textContent = "Link copied"; }, function () { btn.textContent = url; });
+    else btn.textContent = url;
+  }
+
+  // Rebuilds the two-player scoreboard from the shared match record.
+  function syncDuel(m) {
+    var count = Math.max(1, Math.min(30, Number(m.count) || 5));
+    function pl(i) {
+      var info = (m.p && m.p[i]) || {}, ks = kickList(m, i).slice(0, count);
+      var list = ks.map(function (k) { return { a: Number(k.a) || 0, b: Number(k.b) || 0, done: !!k.ok, taken: true }; });
+      while (list.length < count) list.push({ a: 0, b: 0, done: false, taken: false });
+      return {
+        name: String(info.name || "PLAYER " + (i + 1)).slice(0, 20).toUpperCase(),
+        kit: kitById(info.kit).id, digits: info.digits === 3 ? 3 : 2, carry: !!info.carry,
+        online: info.online !== false, sums: list, idx: ks.length,
+        goals: ks.filter(function (k) { return k.ok; }).length,
+        timeMs: ks.reduce(function (t, k) { return t + (Number(k.ms) || 0); }, 0)
+      };
+    }
+    duel = { p: [pl(0), pl(1)], cp: m.turn === 1 ? 1 : 0, online: true };
+  }
+  function renderOnline() {
+    if (!on) return;
+    var m = on.match;
+    if (!m) {
+      if (on.seenAny) { var code = on.code; leaveOnline(true); openOnline(); onMsg("Match " + code + " has ended.", ""); }
+      return;
+    }
+    on.seenAny = true;
+    if (m.state === "lobby") {
+      if (mode !== "online") { applyKit(kits.p1); show("online"); }
+      paintOnlineCards(on.code);
+      return;
+    }
+    syncDuel(m);
+    var opp = 1 - on.me, oppKicks = kickList(m, opp);
+    if (on.seenOpp === null || oppKicks.length < on.seenOpp) on.seenOpp = oppKicks.length;
+    if (oppKicks.length > on.seenOpp) {
+      on.seenOpp = oppKicks.length;
+      spectate(oppKicks[oppKicks.length - 1], opp);
+      return;
+    }
+    if (m.state === "done") { if (mode !== "result") { on.lastScreen = "done"; showResult(); } return; }
+    if (m.turn === on.me) showMyTurn(); else showWaiting();
+  }
+  function showMyTurn() {
+    var me = on.me, P = duel.p[me], O = duel.p[1 - me];
+    duel.cp = me;
+    applyKit(P.kit);
+    $("#handKit").innerHTML = SHIRT(kitById(P.kit), me + 1);
+    $("#handEyebrow").textContent = "Penalty " + (P.idx + 1) + " of " + P.sums.length;
+    $("#handTitle").textContent = "Your turn, " + P.name + "!";
+    $("#handTitle").classList.remove("wait-dots");
+    $("#handLine").textContent = !O.online
+      ? O.name + "'s phone is offline, but you can still shoot."
+      : P.idx === 0 && O.idx === 0 ? "You go first. " + O.name + " will see your shot on their phone." : O.name + " is watching on their phone.";
+    $("#handTable").innerHTML = rowsHTML(P, "Next up");
+    $("#handRules").textContent = "Your clock starts when you tap I'm ready and stops when you press Shoot.";
+    $("#readyBtn").hidden = false;
+    if (on.lastScreen !== "mine") sfx.turn();
+    on.lastScreen = "mine";
+    show("handover");
+  }
+  function showWaiting() {
+    var me = on.me, O = duel.p[1 - me];
+    duel.cp = 1 - me;
+    applyKit(O.kit);
+    $("#handKit").innerHTML = SHIRT(kitById(O.kit), 2 - me);
+    $("#handEyebrow").textContent = O.name + "'s penalty " + (O.idx + 1) + " of " + O.sums.length;
+    $("#handTitle").textContent = "Waiting for " + O.name;
+    $("#handTitle").classList.add("wait-dots");
+    $("#handLine").textContent = O.online
+      ? O.name + " is working out their sum."
+      : O.name + "'s phone has gone offline. The match carries on when they're back.";
+    $("#handTable").innerHTML = rowsHTML(O, "Shooting");
+    $("#handRules").textContent = "You'll see their shot here as soon as they take it.";
+    $("#readyBtn").hidden = true;
+    on.lastScreen = "wait";
+    show("handover");
+  }
+  // Sets up this phone's next kick: a fresh sum at its player's level, never reusing a number.
+  function onlinePrepareKick() {
+    var m = on && on.match;
+    if (!m || m.state !== "playing" || m.turn !== on.me) { if (on) renderOnline(); return false; }
+    var P = duel.p[on.me];
+    if (P.idx >= P.sums.length) return false;
+    duel.cp = on.me;
+    var used = {}, s;
+    P.sums.forEach(function (x) { if (x.taken) { used[x.a] = true; used[x.b] = true; } });
+    for (var t = 0; t < 200; t++) { s = makeSum(P.digits, P.carry); if (!used[s.a] && !used[s.b]) break; }
+    P.sums[P.idx] = { a: s.a, b: s.b, done: false, taken: false };
+    on.busy = true;
+    on.kickBase = P.timeMs;
+    return true;
+  }
+  function postKick(s, given, ok) {
+    if (!on || !on.match) return;
+    var me = on.me, m = on.match, count = duel.p[me].sums.length;
+    var mine = kickList(m, me).length, theirs = kickList(m, 1 - me).length, patch = {};
+    patch["kicks/" + me + "/" + mine] = {
+      a: s.a, b: s.b, given: given, ok: ok,
+      ms: Math.min(3599999, Math.max(0, Math.round(elapsed() - on.kickBase)))
+    };
+    if (theirs < count) patch.turn = 1 - me;
+    else if (mine + 1 < count) patch.turn = me;
+    else patch.state = "done";
+    applyPatch(m, patch);
+    getNet().update(on.code, patch).catch(function (e) { msg(netError(e), "bad"); });
+  }
+  // Replays the other player's kick on this phone: their sum, their answer, then the shot.
+  function spectate(k, opp) {
+    var mine = on;
+    mine.busy = true;
+    game++;
+    var g = game, P = duel.p[opp], ok = !!k.ok, a = Number(k.a) || 0, b = Number(k.b) || 0;
+    duel.cp = opp;
+    n = P.digits; sums = P.sums; idx = P.idx - 1;
+    applyKit(P.kit);
+    buildBoard(n); setPad(); $("#pad").hidden = true;
+    resetScene(PS); hideBanner(PS);
+    paintScoreboard();
+    var scoreEl = goalsEl();
+    scoreEl.textContent = P.goals - (ok ? 1 : 0);
+    show("play");
+    fitName($("#sbHomeName")); fitName($("#sbAwayName"));
+    clockEl.classList.remove("low");
+    clockEl.textContent = watchText(P.timeMs);
+    fillBoard({ a: a, b: b });
+    entry = digitsOf(Math.max(0, Number(k.given) || 0), n).slice(-n); active = -1; locked = true;
+    renderEntry();
+    countEl.textContent = P.name + "'s penalty " + P.idx + " of " + P.sums.length;
+    paintDots(dotsEl, sums.map(function (x, i) { return i === idx ? { done: false, taken: false } : x; }), idx);
+    msg(P.name + " is shooting…", "");
+    wait(900).then(function () {
+      if (g !== game) return;
+      boxes.forEach(function (el) { el.classList.add(ok ? "correct" : "wrong"); });
+      return shoot(PS, ok);
+    }).then(function () {
+      if (g !== game) return;
+      if (ok) {
+        bump(scoreEl, P.goals);
+        showBanner(PS, "GOAL!", "goal"); confetti(PS.confetti, 30); cheer(PS); sfx.goal();
+        msg(P.name + " scored!", "ok");
+      } else {
+        showBanner(PS, "SAVED!", "save"); sfx.save();
+        msg("Saved! " + a + " + " + b + " = " + (a + b) + ".", "bad");
+      }
+      paintDots(dotsEl, sums, -1);
+      return wait(1600);
+    }).then(function () {
+      if (g !== game || on !== mine) return;
+      hideBanner(PS); resetScene(PS);
+      mine.busy = false;
+      renderOnline();
+    });
+  }
+  function rematch() {
+    if (!on) { startDuel(); return; }
+    if (!on.match) return;
+    var patch = { kicks: null, state: "playing", turn: 0 };
+    applyPatch(on.match, patch);
+    on.seenOpp = 0;
+    getNet().update(on.code, patch).catch(function (e) { msg(netError(e), "bad"); });
+    renderOnline();
   }
 
   /* ---------- end (1 player) ---------- */
@@ -1386,9 +1824,21 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
   $("#goBtn").addEventListener("click", startGame);
   $("#againBtn").addEventListener("click", startGame);
   $("#readyBtn").addEventListener("click", beginTurn);
-  $("#rematchBtn").addEventListener("click", startDuel);
+  $("#rematchBtn").addEventListener("click", rematch);
   $("#levelBtn").addEventListener("click", function () { paintSettings(); show("start"); });
-  $("#resSettingsBtn").addEventListener("click", function () { duel = null; paintSettings(); show("start"); });
+  $("#resSettingsBtn").addEventListener("click", function () { leaveOnline(true); duel = null; paintSettings(); show("start"); });
+  document.querySelectorAll("[data-where]").forEach(function (b) {
+    b.addEventListener("click", function () { where = b.dataset.where; store.set("ps-where", where); paintSettings(); });
+  });
+  $("#createBtn").addEventListener("click", createMatch);
+  $("#joinBtn").addEventListener("click", function () { joinMatch($("#joinCode").value); });
+  $("#joinCode").addEventListener("input", function (e) {
+    var v = e.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4);
+    if (v !== e.target.value) e.target.value = v;
+  });
+  $("#rejoinBtn").addEventListener("click", function () { var sv = savedMatch(); if (sv) joinMatch(sv.code); });
+  $("#onBackBtn").addEventListener("click", onlineBack);
+  $("#shareBtn").addEventListener("click", shareMatch);
   $("#stopBtn").addEventListener("click", stopGame);
   $("#soundBtn").addEventListener("click", function () {
     soundOn = !soundOn; store.set("ps-sound", soundOn ? "on" : "off"); paintSound();
@@ -1405,7 +1855,10 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
   });
   document.addEventListener("keydown", function (e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
-    if (e.target instanceof HTMLInputElement) { if (e.key === "Enter") e.target.blur(); return; }
+    if (e.target instanceof HTMLInputElement) {
+      if (e.key === "Enter") { if (e.target.id === "joinCode") joinMatch(e.target.value); else e.target.blur(); }
+      return;
+    }
     if (mode === "play") {
       if (/^[0-9]$/.test(e.key)) { press(Number(e.key)); e.preventDefault(); }
       else if (e.key === "Backspace" || e.key === "Delete") { rubOut(); e.preventDefault(); }
@@ -1413,11 +1866,24 @@ h2.win { color: var(--amber); text-shadow: 0 3px 0 var(--amber-deep); }
       else if (e.key === "ArrowRight") setActive(active + 1);
       else if (e.key === "Enter") { shootPressed(); e.preventDefault(); }
     } else if (e.key === "Enter" && !(e.target instanceof HTMLButtonElement)) {
-      if (mode === "handover") beginTurn();
-      else if (mode === "result") startDuel();
-      else startGame();
+      if (mode === "handover") { if (!$("#readyBtn").hidden) beginTurn(); }
+      else if (mode === "result") rematch();
+      else if (mode !== "online") startGame();
     }
   });
+
+  // A shared link (…#join-ABCD) opens straight onto the join screen with the code filled in.
+  (function () {
+    var mm = /^#join-([A-Za-z]{4})$/.exec(location.hash);
+    if (!mm || !ONLINE_OK) return;
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    players = 2; where = "two";
+    store.set("ps-mode", "2"); store.set("ps-where", "two");
+    paintSettings();
+    openOnline();
+    $("#joinCode").value = mm[1].toUpperCase();
+    onMsg("Tap Join to play. To change your name or level first, tap Back.", "");
+  })();
 })();
 </script>
 </body>

@@ -8,17 +8,20 @@ A timed column-addition game for children, made to be played on a phone. Every r
 
 - **1 player:** choose 2 or 3 digit sums, with or without carrying, how many penalties and how much time. Score them all before full time.
 - **2 players on one phone:** players take alternate kicks, like a real shootout, and pass the phone between turns. Each player picks their own level, so an adult and a child can play each other. Each player's clock runs only while they work out their sum and stops when they press Shoot. Most goals wins, and the fastest total time breaks a tie.
+- **2 players on two phones:** choose 2 players, then Two phones. One phone creates a match and gets a 4-letter code (or a link to share); the other joins with it. Kicks alternate between the phones, and the waiting phone replays each kick as it lands. Each phone times only its own player. A phone that drops out can rejoin, and either phone can start a rematch.
 
 ## How it works
 
 - The whole game is one file, `index.html`, with no build step and no server.
 - Sums are generated fresh in the browser every game.
-- Best times, names, kits and settings are saved in the phone's own browser storage (`localStorage`). Nothing is sent anywhere.
+- Best times, names, kits and settings are saved in the phone's own browser storage (`localStorage`).
+- One-phone games send nothing anywhere. The two-phone mode uses a free [Firebase Realtime Database](https://firebase.google.com/docs/database): each phone signs in anonymously (no accounts), and a match stores only first names, kit colours, levels, the sums, answers and times. Matches older than a day are cleared.
+- `firebase-config.js` tells the game which database to use. `database.rules.json` holds the security rules (paste them into Firebase → Realtime Database → Rules): only the two phones in a match can change it, a third phone can't join, and a kick can't be changed once taken.
 - Fonts come from Google Fonts. Everything else, including the sounds, is made in the page.
 
 ## Updating
 
-Edit `index.html` and push to `main`. GitHub Pages republishes the site within a minute or two.
+Edit `index.html` (or `firebase-config.js`) and push to `main`. GitHub Pages republishes the site within a minute or two.
 
 ## Add to your home screen
 
