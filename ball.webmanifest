@@ -2,7 +2,7 @@
   "name": "Penalty Shootout",
   "short_name": "Shootout",
   "description": "Every right answer is a goal. Race the clock, or take turns with a friend.",
-  "start_url": "./penalty-shootout.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0a1430",
