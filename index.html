@@ -98,7 +98,7 @@ button, input { font: inherit; color: inherit; }
 .sb-score { font-weight: 800; font-size: 1.7rem; line-height: 1; color: var(--amber); font-variant-numeric: tabular-nums; }
 .sb-score.flash { animation: flash 0.7s ease-out; }
 .sb-clock {
-  display: grid; place-items: center; min-width: 4.8ch; padding: 0 10px;
+  display: grid; place-items: center; min-width: 5.6ch; padding: 0 10px;
   background: var(--screen); border-inline: 2px solid var(--panel-edge);
   font-weight: 800; font-size: 1.35rem; color: var(--amber); font-variant-numeric: tabular-nums;
 }
@@ -355,9 +355,13 @@ h2.left { text-align: left; }
 .code-card { align-items: center; text-align: center; }
 .code-big { margin: 0; font-family: var(--font-display); font-size: clamp(3rem, 18vw, 4.4rem); line-height: 1; letter-spacing: 0.12em; color: var(--amber); text-shadow: 0 4px 0 var(--amber-deep); }
 .code-card .ghost { align-self: stretch; }
-.wait-dots::after { content: ""; animation: dots 1.4s steps(4) infinite; }
+/* Waiting indicator: three pulsing dots on their own line, so the title never changes width */
+.wait-pulse { display: flex; justify-content: center; align-items: center; gap: 8px; height: 12px; }
+.wait-pulse i { width: 10px; height: 10px; border-radius: 50%; background: var(--amber); opacity: 0.3; animation: pulseDot 1.2s ease-in-out infinite; }
+.wait-pulse i:nth-child(2) { animation-delay: 0.2s; }
+.wait-pulse i:nth-child(3) { animation-delay: 0.4s; }
 
-@keyframes dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+@keyframes pulseDot { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
 @keyframes pulse { 50% { transform: scale(1.1); } }
 @keyframes blink { 50% { opacity: 0; } }
 @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
@@ -541,6 +545,7 @@ h2.left { text-align: left; }
       <div class="hand-kit" id="handKit"></div>
       <p class="eyebrow" id="handEyebrow">Player 1</p>
       <h2 id="handTitle">You're first!</h2>
+      <span class="wait-pulse" id="handPulse" aria-hidden="true" hidden><i></i><i></i><i></i></span>
       <p class="end-line" id="handLine"></p>
     </div>
     <div class="pl-rows" id="handTable" aria-label="Shootout so far"></div>
@@ -775,26 +780,21 @@ h2.left { text-align: left; }
   function half(m) { return m % 1 ? Math.floor(m) + "½" : String(m); }
   function timeWords(s) { if (s < 60) return s + " seconds"; var m = s / 60; return half(m) + (m === 1 ? " minute" : " minutes"); }
   function timeShort(s) { return s < 60 ? s + " sec" : half(s / 60) + " min"; }
-  function durWords(ms) {
-    var s = Math.max(1, Math.round(ms / 1000));
-    if (s < 60) return s + (s === 1 ? " second" : " seconds");
-    var m = Math.floor(s / 60), r = s % 60;
-    return m + (m === 1 ? " minute" : " minutes") + (r ? " and " + r + (r === 1 ? " second" : " seconds") : "");
-  }
+  function durWords(ms) { return watchWords(ms); }
   function clockText(ms) { var s = Math.ceil(ms / 1000), m = Math.floor(s / 60), r = s % 60; return m + ":" + (r < 10 ? "0" : "") + r; }
-  // Stopwatch to a tenth of a second: 12.3 or 1:02.3
-  function tenths(ms) { return Math.floor(ms / 100); }
+  // Times to a hundredth of a second: 12.34 or 1:02.34
+  function hundredths(ms) { return Math.floor(ms / 10); }
   function watchText(ms) {
-    var t = tenths(ms), s = t / 10;
-    if (s < 60) return s.toFixed(1);
-    var m = Math.floor(s / 60), r = s - m * 60;
-    return m + ":" + (r < 10 ? "0" : "") + r.toFixed(1);
+    var h = hundredths(ms);
+    if (h < 6000) return (h / 100).toFixed(2);
+    var m = Math.floor(h / 6000), r = (h - m * 6000) / 100;
+    return m + ":" + (r < 10 ? "0" : "") + r.toFixed(2);
   }
   function watchWords(ms) {
-    var s = tenths(ms) / 10;
-    if (s < 60) return s.toFixed(1) + " seconds";
-    var m = Math.floor(s / 60);
-    return m + (m === 1 ? " minute " : " minutes ") + (s - m * 60).toFixed(1) + " seconds";
+    var h = hundredths(ms);
+    if (h < 6000) return (h / 100).toFixed(2) + " seconds";
+    var m = Math.floor(h / 6000);
+    return m + (m === 1 ? " minute " : " minutes ") + ((h - m * 6000) / 100).toFixed(2) + " seconds";
   }
 
   /* ---------- sums ---------- */
@@ -1259,7 +1259,7 @@ h2.left { text-align: left; }
     $("#handKit").innerHTML = SHIRT(k, i + 1);
     $("#handEyebrow").textContent = "Penalty " + (P.idx + 1) + " of " + P.sums.length;
     $("#handTitle").textContent = P.name + " to shoot!";
-    $("#handTitle").classList.remove("wait-dots");
+    $("#handPulse").hidden = true;
     $("#handLine").textContent = i === 0 && P.idx === 0
       ? P.name + " goes first. After each shot, pass the phone to the other player."
       : "Pass the phone to " + P.name + ".";
@@ -1303,8 +1303,8 @@ h2.left { text-align: left; }
     if (A.goals !== B.goals) {
       winner = A.goals > B.goals ? A : B; loser = winner === A ? B : A;
       line = winner.name + " scored " + goalWord(winner.goals) + " to " + loser.name + "'s " + loser.goals + ".";
-    } else if (tenths(A.timeMs) !== tenths(B.timeMs)) {
-      winner = tenths(A.timeMs) < tenths(B.timeMs) ? A : B; loser = winner === A ? B : A;
+    } else if (hundredths(A.timeMs) !== hundredths(B.timeMs)) {
+      winner = hundredths(A.timeMs) < hundredths(B.timeMs) ? A : B; loser = winner === A ? B : A;
       line = "Both scored " + goalWord(A.goals) + ", so the fastest time wins. " + winner.name + " took " + watchWords(winner.timeMs) +
         " and " + loser.name + " took " + watchWords(loser.timeMs) + ".";
     } else {
@@ -1636,7 +1636,7 @@ h2.left { text-align: left; }
     $("#handKit").innerHTML = SHIRT(kitById(P.kit), me + 1);
     $("#handEyebrow").textContent = "Penalty " + (P.idx + 1) + " of " + P.sums.length;
     $("#handTitle").textContent = "Your turn, " + P.name + "!";
-    $("#handTitle").classList.remove("wait-dots");
+    $("#handPulse").hidden = true;
     $("#handLine").textContent = !O.online
       ? O.name + "'s phone is offline, but you can still shoot."
       : P.idx === 0 && O.idx === 0 ? "You go first. " + O.name + " will see your shot on their phone." : O.name + " is watching on their phone.";
@@ -1654,7 +1654,7 @@ h2.left { text-align: left; }
     $("#handKit").innerHTML = SHIRT(kitById(O.kit), 2 - me);
     $("#handEyebrow").textContent = O.name + "'s penalty " + (O.idx + 1) + " of " + O.sums.length;
     $("#handTitle").textContent = "Waiting for " + O.name;
-    $("#handTitle").classList.add("wait-dots");
+    $("#handPulse").hidden = false;
     $("#handLine").textContent = O.online
       ? O.name + " is working out their sum."
       : O.name + "'s phone has gone offline. The match carries on when they're back.";
